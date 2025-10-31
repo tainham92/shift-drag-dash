@@ -131,22 +131,33 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
                             const color = getStaffColor(staffMember.colorIndex);
                             
                             if (dayShifts.length > 0) {
-                              return (
+                              return dayShifts.map((shift, index) => (
                                 <div 
-                                  key={staffMember.id}
-                                  className="flex items-center gap-1 p-1 rounded text-xs"
+                                  key={`${staffMember.id}-${index}`}
+                                  className="flex flex-col gap-0.5 p-1.5 rounded text-xs"
                                   style={{ backgroundColor: `${color}20`, borderLeft: `2px solid ${color}` }}
                                 >
-                                  <Avatar className="h-4 w-4" style={{ backgroundColor: color }}>
-                                    <AvatarFallback className="text-white text-[8px]">
-                                      {getInitials(staffMember.name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="truncate flex-1 text-foreground">
-                                    {staffMember.name.split(" ")[0]}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <Avatar className="h-4 w-4" style={{ backgroundColor: color }}>
+                                      <AvatarFallback className="text-white text-[8px]">
+                                        {getInitials(staffMember.name)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="truncate flex-1 text-foreground font-medium">
+                                      {staffMember.name.split(" ")[0]}
+                                    </span>
+                                  </div>
+                                  {shift.type === "leave" ? (
+                                    <span className="text-[10px] text-muted-foreground pl-5">On leave</span>
+                                  ) : shift.type === "week-off" ? (
+                                    <span className="text-[10px] text-muted-foreground pl-5">Week off</span>
+                                  ) : (
+                                    <span className="text-[10px] text-muted-foreground pl-5">
+                                      {shift.startTime} - {shift.endTime}
+                                    </span>
+                                  )}
                                 </div>
-                              );
+                              ));
                             }
                             return null;
                           })}
