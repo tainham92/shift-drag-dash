@@ -189,73 +189,64 @@ export default function Coverage() {
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Week Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Week</CardTitle>
-            <CardDescription>Choose a week to view staff coverage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-[280px] justify-start text-left font-normal")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d, yyyy")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={weekStart}
-                  onSelect={(newDate) => newDate && setWeekStart(startOfWeek(newDate, { weekStartsOn: 1 }))}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </CardContent>
-        </Card>
-
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Peak Coverage</CardDescription>
+        {/* Week Selection and Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle>Select Week</CardTitle>
+              <CardDescription>Choose a week to view staff coverage</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.peakCoverage.count} staff</div>
-              <p className="text-xs text-muted-foreground">at {stats.peakCoverage.time}</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d, yyyy")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={weekStart}
+                    onSelect={(newDate) => newDate && setWeekStart(startOfWeek(newDate, { weekStartsOn: 1 }))}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Lowest Coverage</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.lowestCoverage.count} staff</div>
-              <p className="text-xs text-muted-foreground">at {stats.lowestCoverage.time}</p>
-            </CardContent>
-          </Card>
+          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Peak Coverage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.peakCoverage.count} staff</div>
+                <p className="text-xs text-muted-foreground">at {stats.peakCoverage.time}</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Average Coverage</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.avgCoverage} staff</div>
-              <p className="text-xs text-muted-foreground">throughout the day</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Lowest Coverage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.lowestCoverage.count} staff</div>
+                <p className="text-xs text-muted-foreground">at {stats.lowestCoverage.time}</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Staff</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.uniqueStaff}</div>
-              <p className="text-xs text-muted-foreground">working this week</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Total Staff</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.uniqueStaff}</div>
+                <p className="text-xs text-muted-foreground">working this week</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Week Coverage Grid */}
