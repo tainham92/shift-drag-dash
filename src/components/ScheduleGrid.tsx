@@ -84,7 +84,8 @@ export const ScheduleGrid = ({
 
   const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
     const dayName = getDayOfWeek(date);
-    return shifts.filter(s => s.staffId === staffId && s.day === dayName);
+    const dateString = date.toISOString().split("T")[0];
+    return shifts.filter(s => s.staffId === staffId && (s.day === dayName || s.day === dateString));
   };
 
   const getInitials = (name: string) => {
