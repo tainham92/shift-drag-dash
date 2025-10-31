@@ -9,6 +9,8 @@ interface ResizableShiftProps {
   day: string;
   onResize: (shiftId: string, newEndTime: string) => void;
   onRemove: (shiftId: string) => void;
+  gridRow: string;
+  gridColumn: number;
 }
 
 export const ResizableShift = ({
@@ -17,16 +19,16 @@ export const ResizableShift = ({
   day,
   onResize,
   onRemove,
+  gridRow,
+  gridColumn,
 }: ResizableShiftProps) => {
   const [isResizing, setIsResizing] = useState(false);
   const shiftRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
   const initialEndTime = useRef<string>(shift.endTime);
+  const startRowRef = useRef<number>(0);
 
   const startIndex = getTimeSlotIndex(shift.startTime);
-  const endIndex = getTimeSlotIndex(shift.endTime);
-  const rowSpan = Math.max(1, endIndex - startIndex);
-
   const color = getStaffColor(staff.colorIndex);
 
   useEffect(() => {
@@ -35,19 +37,20 @@ export const ResizableShift = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!shiftRef.current) return;
 
-      const gridCell = shiftRef.current.parentElement;
-      if (!gridCell) return;
-
-      const cellHeight = gridCell.offsetHeight;
+      // Calculate how many rows we've moved based on pixel distance
+      const rowHeight = 48; // min-h-[3rem] = 48px
       const deltaY = e.clientY - startY.current;
-      const cellsMoved = Math.round(deltaY / cellHeight);
+      const rowsMoved = Math.round(deltaY / rowHeight);
 
+      const initialEndIndex = getTimeSlotIndex(initialEndTime.current);
       const newEndIndex = Math.min(
         TIME_SLOTS.length - 1,
-        Math.max(startIndex + 1, getTimeSlotIndex(initialEndTime.current) + cellsMoved)
+        Math.max(startIndex + 1, initialEndIndex + rowsMoved)
       );
 
-      onResize(shift.id, TIME_SLOTS[newEndIndex]);
+      if (newEndIndex !== getTimeSlotIndex(shift.endTime)) {
+        onResize(shift.id, TIME_SLOTS[newEndIndex]);
+      }
     };
 
     const handleMouseUp = () => {
@@ -61,7 +64,7 @@ export const ResizableShift = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isResizing, shift.id, startIndex, onResize]);
+  }, [isResizing, shift.id, shift.endTime, startIndex, onResize]);
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,22 +85,23 @@ export const ResizableShift = ({
     <div
       ref={shiftRef}
       onClick={handleClick}
-      className="absolute inset-0 group cursor-pointer"
+      className="group cursor-pointer border border-white/20 flex flex-col"
       style={{
         backgroundColor: color,
-        gridRow: `span ${rowSpan}`,
+        gridRow: gridRow,
+        gridColumn: gridColumn,
         zIndex: isResizing ? 50 : 10,
         opacity: isResizing ? 0.8 : 1,
       }}
     >
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex-1 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2">
         <span className="text-xs font-medium text-white bg-black/30 px-2 py-1 rounded">
           Double-click to remove
         </span>
       </div>
       
       <div
-        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="h-3 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
         onMouseDown={handleResizeStart}
       >
         <GripVertical className="h-3 w-3 text-white/70" />
