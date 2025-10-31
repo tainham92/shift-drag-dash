@@ -5,12 +5,15 @@ export interface Staff {
   hourlyRate: number;
 }
 
+export type ShiftType = "regular" | "flexible" | "leave" | "week-off";
+
 export interface Shift {
   id: string;
   staffId: string;
   day: string;
   startTime: string;
   endTime: string;
+  type: ShiftType;
 }
 
 export interface TimeSlot {

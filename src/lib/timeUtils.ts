@@ -7,6 +7,30 @@ export const TIME_SLOTS = [
 
 export const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+export function getWeekDates(startDate: Date) {
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    dates.push(date);
+  }
+  return dates;
+}
+
+export function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+export function getWeekRange(startDate: Date) {
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+}
+
+export function getDayOfWeek(date: Date) {
+  return DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1];
+}
+
 export function calculateHours(startTime: string, endTime: string): number {
   const [startHour, startMin] = startTime.split(":").map(Number);
   const [endHour, endMin] = endTime.split(":").map(Number);

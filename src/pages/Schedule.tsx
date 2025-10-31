@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Staff, Shift } from "@/types/shift";
+import { Staff, Shift, ShiftType } from "@/types/shift";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
-import { StaffList } from "@/components/StaffList";
 import { StaffDialog } from "@/components/StaffDialog";
+import { ShiftDialog } from "@/components/ShiftDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import { UserPlus, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { TIME_SLOTS, DAYS } from "@/lib/timeUtils";
+import { getDayOfWeek, getWeekRange } from "@/lib/timeUtils";
 
 const INITIAL_STAFF: Staff[] = [
   { id: "1", name: "Staff 1", colorIndex: 0, hourlyRate: 15 },
@@ -21,86 +21,67 @@ const INITIAL_STAFF: Staff[] = [
 export default function Schedule() {
   const [staff, setStaff] = useState<Staff[]>(INITIAL_STAFF);
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
+  const [staffDialogOpen, setStaffDialogOpen] = useState(false);
+  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [weekStartDate, setWeekStartDate] = useState(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  });
 
-  const handleStaffClick = (staffId: string) => {
-    if (selectedCells.size === 0) {
-      toast.error("Please select time slots in the schedule first");
-      return;
-    }
-
-    const selectedStaff = staff.find((s) => s.id === staffId);
-    if (!selectedStaff) return;
-
-    // Group selected cells by staff and day
-    const cellsByStaffAndDay = new Map<string, Map<string, string[]>>();
-    selectedCells.forEach((cellId) => {
-      const [cellStaffId, day, time] = cellId.split("-");
-      
-      if (!cellsByStaffAndDay.has(cellStaffId)) {
-        cellsByStaffAndDay.set(cellStaffId, new Map());
-      }
-      const staffMap = cellsByStaffAndDay.get(cellStaffId)!;
-      
-      if (!staffMap.has(day)) {
-        staffMap.set(day, []);
-      }
-      staffMap.get(day)!.push(time);
-    });
-
-    // Create shifts for each staff/day combination
-    const newShifts: Shift[] = [];
-    cellsByStaffAndDay.forEach((dayMap, cellStaffId) => {
-      dayMap.forEach((times, day) => {
-        // Sort times and find continuous blocks
-        const timeIndices = times.map((t) => TIME_SLOTS.indexOf(t)).sort((a, b) => a - b);
-        
-        let blockStart = timeIndices[0];
-        let blockEnd = timeIndices[0];
-
-        for (let i = 1; i <= timeIndices.length; i++) {
-          if (i < timeIndices.length && timeIndices[i] === blockEnd + 1) {
-            blockEnd = timeIndices[i];
-          } else {
-            // Create shift for this continuous block
-            const startTime = TIME_SLOTS[blockStart];
-            const endTime = TIME_SLOTS[blockEnd];
-            
-            const newShift: Shift = {
-              id: `${cellStaffId}-${day}-${startTime}-${Date.now()}-${newShifts.length}`,
-              staffId: cellStaffId,
-              day: day,
-              startTime: startTime,
-              endTime: endTime,
-            };
-            newShifts.push(newShift);
-
-            if (i < timeIndices.length) {
-              blockStart = timeIndices[i];
-              blockEnd = timeIndices[i];
-            }
-          }
-        }
-      });
-    });
-
-    setShifts((prev) => [...prev, ...newShifts]);
-    setSelectedCells(new Set());
-    toast.success(`Created ${newShifts.length} shift${newShifts.length > 1 ? 's' : ''}`);
+  const handleAddShift = (staffId: string, date: Date) => {
+    setSelectedStaffId(staffId);
+    setSelectedDate(date);
+    setShiftDialogOpen(true);
   };
 
-  const handleResizeShift = (shiftId: string, newEndTime: string) => {
-    setShifts((prev) =>
-      prev.map((shift) =>
-        shift.id === shiftId ? { ...shift, endTime: newEndTime } : shift
-      )
-    );
+  const handleSaveShift = (startTime: string, endTime: string, type: ShiftType) => {
+    if (!selectedDate || !selectedStaffId) return;
+
+    const newShift: Shift = {
+      id: `${selectedStaffId}-${selectedDate.toISOString()}-${Date.now()}`,
+      staffId: selectedStaffId,
+      day: getDayOfWeek(selectedDate),
+      startTime,
+      endTime,
+      type,
+    };
+
+    setShifts((prev) => [...prev, newShift]);
+    toast.success("Shift added");
   };
 
-  const handleRemoveShift = (shiftId: string) => {
-    setShifts((prev) => prev.filter((shift) => shift.id !== shiftId));
+  const handleShiftClick = (shift: Shift) => {
+    setShifts((prev) => prev.filter((s) => s.id !== shift.id));
     toast.success("Shift removed");
+  };
+
+  const handlePreviousWeek = () => {
+    const newDate = new Date(weekStartDate);
+    newDate.setDate(weekStartDate.getDate() - 7);
+    setWeekStartDate(newDate);
+  };
+
+  const handleNextWeek = () => {
+    const newDate = new Date(weekStartDate);
+    newDate.setDate(weekStartDate.getDate() + 7);
+    setWeekStartDate(newDate);
+  };
+
+  const handleToday = () => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+    setWeekStartDate(monday);
   };
 
   const handleAddStaff = (newStaff: Omit<Staff, "id">) => {
@@ -115,53 +96,74 @@ export default function Schedule() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Weekly Schedule</h1>
-            <p className="text-muted-foreground mt-1">
-              Click and drag time slots in each staff member's row to create shifts
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold text-foreground">Shift Board</h1>
+          <Button
+            onClick={() => setStaffDialogOpen(true)}
+            variant="outline"
+            className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Employee
+          </Button>
         </div>
 
-        <div className="grid grid-cols-[280px_1fr] gap-6">
-          <div className="space-y-4">
-            <Card className="p-4">
+        {/* Week Navigation */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousWeek}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            
+            <div className="flex items-center gap-4">
+              <span className="text-lg font-semibold">{getWeekRange(weekStartDate)}</span>
               <Button
-                onClick={() => setDialogOpen(true)}
-                className="w-full"
-                variant="default"
+                variant="ghost"
+                size="sm"
+                onClick={handleToday}
               >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Staff
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Today
               </Button>
-            </Card>
+            </div>
 
-            <Card className="p-4">
-              <StaffList 
-                staff={staff} 
-                onStaffClick={handleStaffClick}
-              />
-            </Card>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextWeek}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
+        </Card>
 
-          <Card className="p-6">
-            <ScheduleGrid
-              shifts={shifts}
-              staff={staff}
-              onRemoveShift={handleRemoveShift}
-              onResizeShift={handleResizeShift}
-              selectedCells={selectedCells}
-              onSelectionChange={setSelectedCells}
-            />
-          </Card>
-        </div>
+        {/* Schedule Grid */}
+        <Card className="overflow-hidden">
+          <ScheduleGrid
+            shifts={shifts}
+            staff={staff}
+            weekStartDate={weekStartDate}
+            onAddShift={handleAddShift}
+            onShiftClick={handleShiftClick}
+          />
+        </Card>
       </div>
 
       <StaffDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={staffDialogOpen}
+        onOpenChange={setStaffDialogOpen}
         onSave={handleAddStaff}
+      />
+
+      <ShiftDialog
+        open={shiftDialogOpen}
+        onOpenChange={setShiftDialogOpen}
+        onSave={handleSaveShift}
       />
     </div>
   );
