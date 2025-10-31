@@ -33,8 +33,6 @@ export default function Schedule() {
     const selectedStaff = staff.find((s) => s.id === staffId);
     if (!selectedStaff) return;
 
-    console.log("Selected cells:", Array.from(selectedCells));
-
     // Group selected cells by day
     const cellsByDay = new Map<string, string[]>();
     selectedCells.forEach((cellId) => {
@@ -45,14 +43,11 @@ export default function Schedule() {
       cellsByDay.get(day)!.push(time);
     });
 
-    console.log("Cells by day:", Object.fromEntries(cellsByDay));
-
     // Create shifts for each day
     const newShifts: Shift[] = [];
     cellsByDay.forEach((times, day) => {
       // Sort times and find continuous blocks
       const timeIndices = times.map((t) => TIME_SLOTS.indexOf(t)).sort((a, b) => a - b);
-      console.log(`Day ${day} - Time indices:`, timeIndices);
       
       let blockStart = timeIndices[0];
       let blockEnd = timeIndices[0];
@@ -63,10 +58,7 @@ export default function Schedule() {
         } else {
           // Create shift for this continuous block
           const startTime = TIME_SLOTS[blockStart];
-          const endTimeIndex = Math.min(blockEnd + 1, TIME_SLOTS.length - 1);
-          const endTime = TIME_SLOTS[endTimeIndex];
-          
-          console.log(`Creating shift: ${day} ${startTime}-${endTime} (indices ${blockStart}-${endTimeIndex})`);
+          const endTime = TIME_SLOTS[blockEnd];
           
           const newShift: Shift = {
             id: `${staffId}-${day}-${startTime}-${Date.now()}-${newShifts.length}`,
@@ -85,7 +77,6 @@ export default function Schedule() {
       }
     });
 
-    console.log("New shifts:", newShifts);
     setShifts((prev) => [...prev, ...newShifts]);
     setSelectedCells(new Set());
     toast.success(`Assigned ${selectedStaff.name} to ${selectedCells.size} cell${selectedCells.size > 1 ? 's' : ''}`);

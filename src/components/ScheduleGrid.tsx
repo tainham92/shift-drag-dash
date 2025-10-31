@@ -45,7 +45,6 @@ export const ScheduleGrid = ({
   const getDayIndex = (day: string) => DAYS.indexOf(day);
 
   const handleMouseDown = (day: string, time: string) => {
-    console.log("Mouse down on:", day, time);
     setIsSelecting(true);
     setSelectionStart({ day, time });
     onSelectionChange(new Set([`${day}-${time}`]));
@@ -54,15 +53,10 @@ export const ScheduleGrid = ({
   const handleMouseEnter = (day: string, time: string) => {
     if (!isSelecting || !selectionStart) return;
 
-    console.log("Mouse enter:", day, time, "from", selectionStart.day, selectionStart.time);
-
     const startDayIndex = DAYS.indexOf(selectionStart.day);
     const endDayIndex = DAYS.indexOf(day);
     const startTimeIndex = TIME_SLOTS.indexOf(selectionStart.time);
     const endTimeIndex = TIME_SLOTS.indexOf(time);
-
-    console.log("Day indices:", startDayIndex, "to", endDayIndex);
-    console.log("Time indices:", startTimeIndex, "to", endTimeIndex);
 
     const minDay = Math.min(startDayIndex, endDayIndex);
     const maxDay = Math.max(startDayIndex, endDayIndex);
@@ -75,7 +69,6 @@ export const ScheduleGrid = ({
         newSelection.add(`${DAYS[d]}-${TIME_SLOTS[t]}`);
       }
     }
-    console.log("New selection:", Array.from(newSelection));
     onSelectionChange(newSelection);
   };
 
@@ -135,20 +128,21 @@ export const ScheduleGrid = ({
 
         {/* Render all shifts as absolute overlays */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] h-full gap-0">
-            {/* Spacer for header row */}
-            <div className="col-span-8 h-[52px]" />
-            
+          <div 
+            className="grid gap-0"
+            style={{
+              gridTemplateColumns: '100px repeat(7, minmax(120px, 1fr))',
+              gridTemplateRows: 'auto repeat(26, minmax(3rem, auto))'
+            }}
+          >
             {/* Render shifts */}
             {shifts.map((shift) => {
               const staffMember = staff.find((s) => s.id === shift.staffId);
               if (!staffMember) return null;
 
               const startRow = getTimeSlotIndex(shift.startTime) + 2;
-              const endRow = getTimeSlotIndex(shift.endTime) + 2;
+              const endRow = getTimeSlotIndex(shift.endTime) + 3;
               const column = getDayIndex(shift.day) + 2;
-              
-              console.log(`Shift ${shift.id}: ${shift.day} ${shift.startTime}(idx:${getTimeSlotIndex(shift.startTime)}) to ${shift.endTime}(idx:${getTimeSlotIndex(shift.endTime)}) = grid-row ${startRow}/${endRow}, grid-col ${column}`);
 
               return (
                 <ResizableShift
