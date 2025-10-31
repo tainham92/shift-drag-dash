@@ -60,10 +60,13 @@ export default function Schedule() {
     }
   };
 
-  const handleResizeShift = (shiftId: string, newEndTime: string) => {
+  const handleResizeShift = (
+    shiftId: string,
+    updates: { startTime?: string; endTime?: string; day?: string }
+  ) => {
     setShifts((prev) =>
       prev.map((shift) =>
-        shift.id === shiftId ? { ...shift, endTime: newEndTime } : shift
+        shift.id === shiftId ? { ...shift, ...updates } : shift
       )
     );
   };

@@ -7,7 +7,7 @@ interface ScheduleGridProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
-  onResizeShift: (shiftId: string, newEndTime: string) => void;
+  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; day?: string }) => void;
 }
 
 interface DroppableCellProps {
@@ -16,7 +16,7 @@ interface DroppableCellProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
-  onResizeShift: (shiftId: string, newEndTime: string) => void;
+  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; day?: string }) => void;
 }
 
 const DroppableCell = ({ 
