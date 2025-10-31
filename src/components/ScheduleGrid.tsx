@@ -147,6 +147,8 @@ export const ScheduleGrid = ({
               const startRow = getTimeSlotIndex(shift.startTime) + 2;
               const endRow = getTimeSlotIndex(shift.endTime) + 2;
               const column = getDayIndex(shift.day) + 2;
+              
+              console.log(`Shift ${shift.id}: ${shift.day} ${shift.startTime}(idx:${getTimeSlotIndex(shift.startTime)}) to ${shift.endTime}(idx:${getTimeSlotIndex(shift.endTime)}) = grid-row ${startRow}/${endRow}, grid-col ${column}`);
 
               return (
                 <ResizableShift
