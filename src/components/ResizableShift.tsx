@@ -85,7 +85,7 @@ export const ResizableShift = ({
     <div
       ref={shiftRef}
       onClick={handleClick}
-      className="group cursor-pointer border border-white/20 flex flex-col"
+      className="group cursor-pointer border border-white/20 flex flex-col pointer-events-auto"
       style={{
         backgroundColor: color,
         gridRow: gridRow,
@@ -101,7 +101,7 @@ export const ResizableShift = ({
       </div>
       
       <div
-        className="h-3 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="h-3 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors pointer-events-auto"
         onMouseDown={handleResizeStart}
       >
         <GripVertical className="h-3 w-3 text-white/70" />

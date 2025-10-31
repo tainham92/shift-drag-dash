@@ -36,8 +36,8 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
 
   return (
     <div className="overflow-auto">
-      <div className="inline-block min-w-full">
-        <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden relative">
+      <div className="inline-block min-w-full relative">
+        <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-primary text-primary-foreground font-semibold p-3 text-sm">
             Time
@@ -69,29 +69,37 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
               ))}
             </>
           ))}
+        </div>
 
-          {/* Render all shifts as grid overlays */}
-          {shifts.map((shift) => {
-            const staffMember = staff.find((s) => s.id === shift.staffId);
-            if (!staffMember) return null;
+        {/* Render all shifts as absolute overlays */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] h-full gap-0">
+            {/* Spacer for header row */}
+            <div className="col-span-8 h-[52px]" />
+            
+            {/* Render shifts */}
+            {shifts.map((shift) => {
+              const staffMember = staff.find((s) => s.id === shift.staffId);
+              if (!staffMember) return null;
 
-            const startRow = getTimeSlotIndex(shift.startTime) + 2; // +2 for header row
-            const endRow = getTimeSlotIndex(shift.endTime) + 2;
-            const column = getDayIndex(shift.day) + 2; // +2 for time column
+              const startRow = getTimeSlotIndex(shift.startTime) + 2; // +2 for header row
+              const endRow = getTimeSlotIndex(shift.endTime) + 2;
+              const column = getDayIndex(shift.day) + 2; // +2 for time column
 
-            return (
-              <ResizableShift
-                key={shift.id}
-                shift={shift}
-                staff={staffMember}
-                day={shift.day}
-                onResize={onResizeShift}
-                onRemove={onRemoveShift}
-                gridRow={`${startRow} / ${endRow}`}
-                gridColumn={column}
-              />
-            );
-          })}
+              return (
+                <ResizableShift
+                  key={shift.id}
+                  shift={shift}
+                  staff={staffMember}
+                  day={shift.day}
+                  onResize={onResizeShift}
+                  onRemove={onRemoveShift}
+                  gridRow={`${startRow} / ${endRow}`}
+                  gridColumn={column}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
