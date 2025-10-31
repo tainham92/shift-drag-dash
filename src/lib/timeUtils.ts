@@ -38,13 +38,3 @@ export function getNextTimeSlot(time: string): string {
   if (index === -1 || index >= TIME_SLOTS.length - 1) return time;
   return TIME_SLOTS[index + 1];
 }
-
-export function getDayIndex(day: string): number {
-  return DAYS.indexOf(day);
-}
-
-export function getNextDay(day: string): string {
-  const index = getDayIndex(day);
-  if (index === -1 || index >= DAYS.length - 1) return day;
-  return DAYS[index + 1];
-}
