@@ -126,7 +126,7 @@ export default function Schedule() {
               </Card>
             </div>
 
-            <Card className="p-6">
+            <Card className="p-6 border-0">
               <ScheduleGrid
                 shifts={shifts}
                 staff={staff}
