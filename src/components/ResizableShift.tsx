@@ -149,7 +149,7 @@ export const ResizableShift = ({
         opacity: resizingEdge ? 0.8 : 1,
       }}
     >
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
         <span className="text-xs font-medium text-white bg-black/30 px-2 py-1 rounded">
           Double-click to remove
         </span>
@@ -157,7 +157,7 @@ export const ResizableShift = ({
       
       {/* Top resize handle */}
       <div
-        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors pointer-events-auto"
         onMouseDown={handleResizeStart("top")}
       >
         <GripVertical className="h-3 w-3 text-white/70" />
@@ -165,7 +165,7 @@ export const ResizableShift = ({
 
       {/* Bottom resize handle */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors pointer-events-auto"
         onMouseDown={handleResizeStart("bottom")}
       >
         <GripVertical className="h-3 w-3 text-white/70" />
@@ -173,7 +173,7 @@ export const ResizableShift = ({
 
       {/* Left resize handle */}
       <div
-        className="absolute top-0 left-0 bottom-0 w-2 cursor-ew-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="absolute top-0 left-0 bottom-0 w-2 cursor-ew-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors pointer-events-auto"
         onMouseDown={handleResizeStart("left")}
       >
         <GripHorizontal className="h-3 w-3 text-white/70 rotate-90" />
@@ -181,7 +181,7 @@ export const ResizableShift = ({
 
       {/* Right resize handle */}
       <div
-        className="absolute top-0 right-0 bottom-0 w-2 cursor-ew-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors"
+        className="absolute top-0 right-0 bottom-0 w-2 cursor-ew-resize bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors pointer-events-auto"
         onMouseDown={handleResizeStart("right")}
       >
         <GripHorizontal className="h-3 w-3 text-white/70 rotate-90" />
