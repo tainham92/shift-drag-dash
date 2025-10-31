@@ -30,11 +30,14 @@ export const ResizableShift = ({
 
   const startTimeIndex = getTimeSlotIndex(shift.startTime);
   const endTimeIndex = getTimeSlotIndex(shift.endTime);
-  const rowSpan = Math.max(1, endTimeIndex - startTimeIndex);
-
   const startDayIndex = getDayIndex(shift.startDay);
   const endDayIndex = getDayIndex(shift.endDay);
-  const colSpan = Math.max(1, endDayIndex - startDayIndex + 1);
+
+  // Grid positioning: +2 because of header row and time column
+  const gridRowStart = startTimeIndex + 2;
+  const gridRowEnd = endTimeIndex + 2;
+  const gridColumnStart = startDayIndex + 2;
+  const gridColumnEnd = endDayIndex + 3;
 
   const color = getStaffColor(staff.colorIndex);
 
@@ -44,23 +47,27 @@ export const ResizableShift = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!shiftRef.current) return;
 
-      const gridCell = shiftRef.current.parentElement;
-      if (!gridCell) return;
+      const grid = shiftRef.current.parentElement;
+      if (!grid) return;
+
+      // Get a reference cell to calculate dimensions
+      const firstCell = grid.querySelector('[class*="min-h-"]');
+      if (!firstCell) return;
 
       const updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string } = {};
 
       if (resizingEdge === "bottom" || resizingEdge === "top") {
         // Vertical resize (time)
-        const cellHeight = gridCell.offsetHeight;
+        const cellHeight = (firstCell as HTMLElement).offsetHeight;
         const deltaY = e.clientY - startPos.current.y;
         const cellsMoved = Math.round(deltaY / cellHeight);
 
         if (resizingEdge === "bottom") {
           const newEndIndex = Math.min(
-            TIME_SLOTS.length - 1,
+            TIME_SLOTS.length,
             Math.max(startTimeIndex + 1, getTimeSlotIndex(initialState.current.endTime) + cellsMoved)
           );
-          updates.endTime = TIME_SLOTS[newEndIndex];
+          updates.endTime = TIME_SLOTS[newEndIndex - 1] || TIME_SLOTS[TIME_SLOTS.length - 1];
         } else {
           const newStartIndex = Math.max(
             0,
@@ -70,7 +77,7 @@ export const ResizableShift = ({
         }
       } else if (resizingEdge === "left" || resizingEdge === "right") {
         // Horizontal resize (day)
-        const cellWidth = gridCell.offsetWidth;
+        const cellWidth = (firstCell as HTMLElement).offsetWidth;
         const deltaX = e.clientX - startPos.current.x;
         const cellsMoved = Math.round(deltaX / cellWidth);
 
@@ -131,11 +138,13 @@ export const ResizableShift = ({
     <div
       ref={shiftRef}
       onClick={handleClick}
-      className="absolute inset-0 group cursor-pointer"
+      className="group cursor-pointer border border-white/20"
       style={{
         backgroundColor: color,
-        gridRow: `span ${rowSpan}`,
-        gridColumn: `span ${colSpan}`,
+        gridRowStart,
+        gridRowEnd,
+        gridColumnStart,
+        gridColumnEnd,
         zIndex: resizingEdge ? 50 : 10,
         opacity: resizingEdge ? 0.8 : 1,
       }}

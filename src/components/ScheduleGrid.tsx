@@ -35,11 +35,6 @@ const DroppableCell = ({
   const timeIndex = getTimeSlotIndex(time);
   const dayIndex = DAYS.indexOf(day);
 
-  // Find shifts that start at this exact cell
-  const cellShifts = shifts.filter(
-    (shift) => shift.startDay === day && shift.startTime === time
-  );
-
   // Check if this cell is occupied by any shift
   const isOccupied = shifts.some((shift) => {
     const shiftStartTimeIndex = getTimeSlotIndex(shift.startTime);
@@ -58,34 +53,18 @@ const DroppableCell = ({
   return (
     <div
       ref={setNodeRef}
-      className={`relative min-h-[3rem] border border-border transition-colors ${
+      className={`min-h-[3rem] border border-border transition-colors ${
         isOver && !isOccupied ? "bg-accent/20" : "bg-card"
       }`}
-      style={{ position: "relative" }}
-    >
-      {cellShifts.map((shift) => {
-        const staffMember = staff.find((s) => s.id === shift.staffId);
-        if (!staffMember) return null;
-
-        return (
-          <ResizableShift
-            key={shift.id}
-            shift={shift}
-            staff={staffMember}
-            onResize={onResizeShift}
-            onRemove={onRemoveShift}
-          />
-        );
-      })}
-    </div>
+    />
   );
 };
 
 export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: ScheduleGridProps) => {
   return (
     <div className="overflow-auto">
-      <div className="inline-block min-w-full">
-        <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden">
+      <div className="inline-block min-w-full relative">
+        <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0 border border-border rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-primary text-primary-foreground font-semibold p-3 text-sm">
             Time
@@ -99,7 +78,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
             </div>
           ))}
 
-          {/* Time slots */}
+          {/* Time slots and cells */}
           {TIME_SLOTS.map((time) => (
             <>
               <div
@@ -121,6 +100,22 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
               ))}
             </>
           ))}
+
+          {/* Render all shifts as direct children of the grid */}
+          {shifts.map((shift) => {
+            const staffMember = staff.find((s) => s.id === shift.staffId);
+            if (!staffMember) return null;
+
+            return (
+              <ResizableShift
+                key={shift.id}
+                shift={shift}
+                staff={staffMember}
+                onResize={onResizeShift}
+                onRemove={onRemoveShift}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
