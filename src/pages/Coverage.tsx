@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ChevronDown, LogOut, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
-import { TIME_SLOTS, calculateCoverageForTimeSlot, getCoverageIntensityColor, getStaffColor, getWeekDates, DAYS } from "@/lib/timeUtils";
+import { TIME_SLOTS, calculateCoverageForTimeSlot, getCoverageIntensityColor, getStaffColor, getWeekDates, DAYS, getDayOfWeek } from "@/lib/timeUtils";
 import { Staff, Shift } from "@/types/shift";
 import { toast } from "sonner";
 
@@ -70,11 +70,17 @@ export default function Coverage() {
         id: s.id,
         staffId: s.staff_id,
         day: s.day,
-        startTime: s.start_time,
-        endTime: s.end_time,
+        startTime: normalizeTime(s.start_time),
+        endTime: normalizeTime(s.end_time),
         type: s.type as "regular" | "flexible" | "leave" | "week-off",
       })));
     }
+  };
+
+  const normalizeTime = (time: string): string => {
+    // Convert "09:00" to "9:00" to match TIME_SLOTS format
+    const [hours, minutes] = time.split(":");
+    return `${parseInt(hours)}:${minutes}`;
   };
 
   const handleLogout = async () => {
