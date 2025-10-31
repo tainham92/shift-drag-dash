@@ -1,4 +1,4 @@
-import { Calendar, BarChart3 } from "lucide-react";
+import { Calendar, BarChart3, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ import {
 
 const items = [
   { title: "Schedule", url: "/", icon: Calendar },
+  { title: "Employee", url: "/employee", icon: Users },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
 ];
 
