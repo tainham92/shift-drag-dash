@@ -18,7 +18,7 @@ import { toast } from "sonner";
 const TIMEFRAMES = [
   { label: "Morning", start: "8:30", end: "11:30" },
   { label: "Afternoon", start: "11:30", end: "16:00" },
-  { label: "Evening", start: "16:30", end: "21:00" },
+  { label: "Evening", start: "16:00", end: "21:00" },
 ];
 
 export default function Coverage() {
