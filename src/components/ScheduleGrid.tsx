@@ -45,6 +45,7 @@ export const ScheduleGrid = ({
   const getDayIndex = (day: string) => DAYS.indexOf(day);
 
   const handleMouseDown = (day: string, time: string) => {
+    console.log("Mouse down on:", day, time);
     setIsSelecting(true);
     setSelectionStart({ day, time });
     onSelectionChange(new Set([`${day}-${time}`]));
@@ -53,10 +54,15 @@ export const ScheduleGrid = ({
   const handleMouseEnter = (day: string, time: string) => {
     if (!isSelecting || !selectionStart) return;
 
+    console.log("Mouse enter:", day, time, "from", selectionStart.day, selectionStart.time);
+
     const startDayIndex = DAYS.indexOf(selectionStart.day);
     const endDayIndex = DAYS.indexOf(day);
     const startTimeIndex = TIME_SLOTS.indexOf(selectionStart.time);
     const endTimeIndex = TIME_SLOTS.indexOf(time);
+
+    console.log("Day indices:", startDayIndex, "to", endDayIndex);
+    console.log("Time indices:", startTimeIndex, "to", endTimeIndex);
 
     const minDay = Math.min(startDayIndex, endDayIndex);
     const maxDay = Math.max(startDayIndex, endDayIndex);
@@ -69,6 +75,7 @@ export const ScheduleGrid = ({
         newSelection.add(`${DAYS[d]}-${TIME_SLOTS[t]}`);
       }
     }
+    console.log("New selection:", Array.from(newSelection));
     onSelectionChange(newSelection);
   };
 
