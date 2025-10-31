@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import Schedule from "./pages/Schedule";
 import Employee from "./pages/Employee";
+import Shift from "./pages/Shift";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Schedule />} />
                 <Route path="/employee" element={<Employee />} />
+                <Route path="/shift" element={<Shift />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
