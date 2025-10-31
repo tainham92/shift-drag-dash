@@ -210,33 +210,33 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
 
       {/* Staff Summary */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>Staff Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {staffHours.map((member) => {
               const color = getStaffColor(member.colorIndex);
               
               return (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-secondary/50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-secondary/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                     <div>
-                      <p className="font-semibold">{member.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-semibold text-sm">{member.name}</p>
+                      <p className="text-xs text-muted-foreground">
                         ${member.hourlyRate}/hr · {member.shiftCount} shifts
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-primary">
+                    <p className="text-base font-bold text-primary">
                       {member.totalHours.toFixed(1)} hrs
                     </p>
-                    <p className="text-sm font-medium text-accent">
+                    <p className="text-xs font-medium text-accent">
                       ${member.salary.toFixed(2)}
                     </p>
                   </div>
