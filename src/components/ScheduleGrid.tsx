@@ -53,7 +53,7 @@ const DroppableCell = ({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[3rem] transition-colors ${
+      className={`min-h-[3rem] border border-border transition-colors ${
         isOver && !isOccupied ? "bg-accent/20" : "bg-card"
       }`}
     />
@@ -65,7 +65,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
     <div className="overflow-auto">
       <div className="inline-block min-w-full">
         <div className="relative">
-          <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0 border border-border rounded-lg overflow-hidden">
             {/* Header */}
             <div className="bg-primary text-primary-foreground font-semibold p-3 text-sm">
               Time
@@ -84,7 +84,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
               <>
                 <div
                   key={`time-${time}`}
-                  className="bg-secondary font-medium p-3 text-sm"
+                  className="bg-secondary font-medium p-3 text-sm border-t border-border"
                 >
                   {time}
                 </div>
