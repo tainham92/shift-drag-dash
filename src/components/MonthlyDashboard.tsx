@@ -96,41 +96,6 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Hours ({monthName})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary">{totalHours.toFixed(1)}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Salary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-accent">${totalSalary.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Staff Members
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-foreground">{staff.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Monthly Calendar Grid */}
       <Card>
         <CardHeader>
@@ -195,6 +160,42 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
           </div>
         </CardContent>
       </Card>
+
+      {/* Summary Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Hours ({monthName})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-primary">{totalHours.toFixed(1)}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Salary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-accent">${totalSalary.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Staff Members
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-foreground">{staff.length}</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Staff Summary */}
       <Card>
