@@ -188,19 +188,19 @@ export default function Coverage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-4 py-4 space-y-4">
         {/* Week Selection and Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
           <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Select Week</CardTitle>
-              <CardDescription>Choose a week to view staff coverage</CardDescription>
+            <CardHeader className="pb-2 pt-3">
+              <CardTitle className="text-base">Select Week</CardTitle>
+              <CardDescription className="text-xs">Choose a week to view staff coverage</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-3">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                  <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal text-xs")}>
+                    <CalendarIcon className="mr-2 h-3 w-3" />
                     {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d, yyyy")}
                   </Button>
                 </PopoverTrigger>
@@ -216,34 +216,34 @@ export default function Coverage() {
             </CardContent>
           </Card>
 
-          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Peak Coverage</CardDescription>
+              <CardHeader className="pb-2 pt-3">
+                <CardDescription className="text-xs">Peak Coverage</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.peakCoverage.count} staff</div>
-                <p className="text-xs text-muted-foreground">at {stats.peakCoverage.time}</p>
+              <CardContent className="pb-3">
+                <div className="text-xl font-bold">{stats.peakCoverage.count} staff</div>
+                <p className="text-[10px] text-muted-foreground">at {stats.peakCoverage.time}</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Lowest Coverage</CardDescription>
+              <CardHeader className="pb-2 pt-3">
+                <CardDescription className="text-xs">Lowest Coverage</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.lowestCoverage.count} staff</div>
-                <p className="text-xs text-muted-foreground">at {stats.lowestCoverage.time}</p>
+              <CardContent className="pb-3">
+                <div className="text-xl font-bold">{stats.lowestCoverage.count} staff</div>
+                <p className="text-[10px] text-muted-foreground">at {stats.lowestCoverage.time}</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Total Staff</CardDescription>
+              <CardHeader className="pb-2 pt-3">
+                <CardDescription className="text-xs">Total Staff</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.uniqueStaff}</div>
-                <p className="text-xs text-muted-foreground">working this week</p>
+              <CardContent className="pb-3">
+                <div className="text-xl font-bold">{stats.uniqueStaff}</div>
+                <p className="text-[10px] text-muted-foreground">working this week</p>
               </CardContent>
             </Card>
           </div>
