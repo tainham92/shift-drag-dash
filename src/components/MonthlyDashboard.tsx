@@ -50,8 +50,8 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
   const monthName = currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
-    const dayName = getDayOfWeek(date);
-    return shifts.filter(s => s.staffId === staffId && s.day === dayName);
+    const dateString = date.toISOString().split("T")[0];
+    return shifts.filter(s => s.staffId === staffId && s.day === dateString);
   };
 
   const getInitials = (name: string) => {
