@@ -85,9 +85,9 @@ export const ScheduleGrid = ({
 
   return (
     <div className="overflow-auto">
-      <div className="inline-block min-w-full">
+      <div className="inline-block min-w-full relative">
         <div 
-          className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden select-none relative"
+          className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden select-none"
           onMouseLeave={() => setIsSelecting(false)}
         >
           {/* Header */}
@@ -124,30 +124,53 @@ export const ScheduleGrid = ({
               ))}
             </>
           ))}
+        </div>
+
+        {/* Render shifts as positioned overlays */}
+        {shifts.map((shift) => {
+          const staffMember = staff.find((s) => s.id === shift.staffId);
+          if (!staffMember) return null;
+
+          const startIndex = getTimeSlotIndex(shift.startTime);
+          const endIndex = getTimeSlotIndex(shift.endTime);
+          const dayIndex = getDayIndex(shift.day);
           
-          {/* Render shifts in the same grid */}
-          {shifts.map((shift) => {
-            const staffMember = staff.find((s) => s.id === shift.staffId);
-            if (!staffMember) return null;
+          // Calculate position based on grid structure
+          // Header row is ~52px, each time row is ~48px
+          const headerHeight = 52;
+          const rowHeight = 48;
+          const top = headerHeight + (startIndex * rowHeight);
+          const height = (endIndex - startIndex) * rowHeight;
+          
+          // Calculate left position based on day
+          // Time column is 100px, each day column is equal width
+          const timeColumnWidth = 100;
+          const left = `calc(${timeColumnWidth}px + (100% - ${timeColumnWidth}px) * ${dayIndex} / 7)`;
+          const width = `calc((100% - ${timeColumnWidth}px) / 7)`;
 
-            const startRow = getTimeSlotIndex(shift.startTime) + 2;
-            const endRow = getTimeSlotIndex(shift.endTime) + 2;
-            const column = getDayIndex(shift.day) + 2;
-
-            return (
+          return (
+            <div
+              key={shift.id}
+              className="absolute pointer-events-auto"
+              style={{
+                top: `${top}px`,
+                left: left,
+                width: width,
+                height: `${height}px`,
+              }}
+            >
               <ResizableShift
-                key={shift.id}
                 shift={shift}
                 staff={staffMember}
                 day={shift.day}
                 onResize={onResizeShift}
                 onRemove={onRemoveShift}
-                gridRow={`${startRow} / ${endRow + 1}`}
-                gridColumn={column}
+                gridRow=""
+                gridColumn={0}
               />
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
