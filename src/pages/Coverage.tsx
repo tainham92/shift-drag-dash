@@ -301,41 +301,29 @@ export default function Coverage() {
 
                         return (
                           <td key={idx} className="border p-0">
-                            <Collapsible>
-                              <div className={cn("p-3 h-full", coverageClass)}>
-                                <div className="flex flex-col items-center gap-2">
+                            <div className={cn("p-3 h-full min-h-[120px]", coverageClass)}>
+                              {staffInTimeframe.length > 0 ? (
+                                <div className="space-y-2">
+                                  {staffInTimeframe.map((s) => (
+                                    <div key={s.id} className="flex items-center gap-2 bg-background/50 rounded-md px-2 py-1.5">
+                                      <Avatar className="h-6 w-6" style={{ backgroundColor: getStaffColor(s.colorIndex) }}>
+                                        <AvatarFallback className="text-white text-[10px]">
+                                          {getInitials(s.name)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-xs font-medium truncate">{s.name}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center h-full">
                                   <Badge variant="secondary" className="gap-1">
                                     <Users className="h-3 w-3" />
-                                    {staffInTimeframe.length}
+                                    0
                                   </Badge>
-                                  
-                                  {staffInTimeframe.length > 0 && (
-                                    <CollapsibleTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                        <ChevronDown className="h-3 w-3" />
-                                      </Button>
-                                    </CollapsibleTrigger>
-                                  )}
                                 </div>
-
-                                {staffInTimeframe.length > 0 && (
-                                  <CollapsibleContent className="mt-3">
-                                    <div className="space-y-2">
-                                      {staffInTimeframe.map((s) => (
-                                        <div key={s.id} className="flex items-center gap-2 bg-background/50 rounded-md px-2 py-1">
-                                          <Avatar className="h-6 w-6" style={{ backgroundColor: getStaffColor(s.colorIndex) }}>
-                                            <AvatarFallback className="text-white text-[10px]">
-                                              {getInitials(s.name)}
-                                            </AvatarFallback>
-                                          </Avatar>
-                                          <span className="text-xs font-medium truncate">{s.name}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </CollapsibleContent>
-                                )}
-                              </div>
-                            </Collapsible>
+                              )}
+                            </div>
                           </td>
                         );
                       })}
