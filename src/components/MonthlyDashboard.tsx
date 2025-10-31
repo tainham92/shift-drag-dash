@@ -98,9 +98,6 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
     <div className="space-y-6">
       {/* Monthly Calendar Grid */}
       <Card>
-        <CardHeader>
-          <CardTitle>{monthName} Schedule</CardTitle>
-        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-auto">
             {/* Calendar Header - Days of Week */}
