@@ -138,7 +138,7 @@ export const ResizableShift = ({
     <div
       ref={shiftRef}
       onClick={handleClick}
-      className="group cursor-pointer border border-white/20"
+      className="group cursor-pointer border border-white/20 pointer-events-auto"
       style={{
         backgroundColor: color,
         gridRowStart,
