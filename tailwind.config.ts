@@ -47,6 +47,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        staff: {
+          1: "hsl(var(--staff-1))",
+          2: "hsl(var(--staff-2))",
+          3: "hsl(var(--staff-3))",
+          4: "hsl(var(--staff-4))",
+          5: "hsl(var(--staff-5))",
+          6: "hsl(var(--staff-6))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
