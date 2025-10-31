@@ -1,66 +1,49 @@
-import { useDraggable } from "@dnd-kit/core";
 import { Staff } from "@/types/shift";
 import { getStaffColor } from "@/lib/timeUtils";
-import { GripVertical } from "lucide-react";
 
 interface StaffListProps {
   staff: Staff[];
+  onStaffClick: (staffId: string) => void;
 }
 
-interface DraggableStaffProps {
+interface StaffItemProps {
   staff: Staff;
+  onClick: () => void;
 }
 
-const DraggableStaff = ({ staff }: DraggableStaffProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: staff.id,
-    data: { staff },
-  });
-
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.5 : 1,
-      }
-    : undefined;
-
-  const colors = [
-    "hsl(var(--staff-1))",
-    "hsl(var(--staff-2))",
-    "hsl(var(--staff-3))",
-    "hsl(var(--staff-4))",
-    "hsl(var(--staff-5))",
-    "hsl(var(--staff-6))",
-  ];
-  const color = colors[staff.colorIndex % colors.length];
+const StaffItem = ({ staff, onClick }: StaffItemProps) => {
+  const color = getStaffColor(staff.colorIndex);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        ...style,
+    <button
+      onClick={onClick}
+      style={{ 
         backgroundColor: `${color}15`,
         borderColor: color,
       }}
-      className="flex items-center gap-2 p-3 rounded-lg border-2 cursor-move transition-all hover:shadow-md"
-      {...listeners}
-      {...attributes}
+      className="w-full flex items-center gap-2 p-3 rounded-lg border-2 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
     >
-      <GripVertical className="h-4 w-4 text-muted-foreground" />
       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
       <span className="font-medium text-sm">{staff.name}</span>
-    </div>
+    </button>
   );
 };
 
-export const StaffList = ({ staff }: StaffListProps) => {
+export const StaffList = ({ staff, onStaffClick }: StaffListProps) => {
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-muted-foreground mb-3">
         STAFF MEMBERS
       </h3>
+      <p className="text-xs text-muted-foreground mb-3">
+        Select cells in the schedule, then click a staff member to assign
+      </p>
       {staff.map((member) => (
-        <DraggableStaff key={member.id} staff={member} />
+        <StaffItem 
+          key={member.id} 
+          staff={member} 
+          onClick={() => onStaffClick(member.id)}
+        />
       ))}
     </div>
   );
