@@ -195,7 +195,7 @@ export default function Coverage() {
             <CardTitle>Select Week</CardTitle>
             <CardDescription>Choose a week to view staff coverage</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-4 items-center">
+          <CardContent>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-[280px] justify-start text-left font-normal")}>
@@ -212,16 +212,6 @@ export default function Coverage() {
                 />
               </PopoverContent>
             </Popover>
-
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={setPreviousWeek}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="secondary" onClick={setThisWeek}>This Week</Button>
-              <Button variant="outline" size="icon" onClick={setNextWeek}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
