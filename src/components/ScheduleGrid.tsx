@@ -132,9 +132,26 @@ export const ScheduleGrid = ({
             className="grid gap-0"
             style={{
               gridTemplateColumns: '100px repeat(7, minmax(120px, 1fr))',
-              gridTemplateRows: 'auto repeat(26, minmax(3rem, auto))'
+              gridTemplateRows: `auto repeat(${TIME_SLOTS.length}, minmax(3rem, auto))`
             }}
           >
+            {/* Match the exact structure of the main grid */}
+            {/* Header row - 8 cells */}
+            <div />
+            {DAYS.map((day) => <div key={`header-${day}`} />)}
+            
+            {/* Time slot rows */}
+            {TIME_SLOTS.map((time) => (
+              <>
+                {/* Time label cell */}
+                <div key={`time-${time}`} />
+                {/* Day cells */}
+                {DAYS.map((day) => (
+                  <div key={`cell-${day}-${time}`} />
+                ))}
+              </>
+            ))}
+            
             {/* Render shifts */}
             {shifts.map((shift) => {
               const staffMember = staff.find((s) => s.id === shift.staffId);
