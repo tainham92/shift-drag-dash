@@ -1,5 +1,5 @@
 import { Staff, Shift } from "@/types/shift";
-import { calculateHours, getStaffColor } from "@/lib/timeUtils";
+import { calculateHours, getStaffColor, getDayIndex } from "@/lib/timeUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface MonthlyDashboardProps {
@@ -11,7 +11,11 @@ export const MonthlyDashboard = ({ shifts, staff }: MonthlyDashboardProps) => {
   const staffHours = staff.map((member) => {
     const memberShifts = shifts.filter((shift) => shift.staffId === member.id);
     const totalHours = memberShifts.reduce((sum, shift) => {
-      return sum + calculateHours(shift.startTime, shift.endTime);
+      const hours = calculateHours(shift.startTime, shift.endTime);
+      const startDayIndex = getDayIndex(shift.startDay);
+      const endDayIndex = getDayIndex(shift.endDay);
+      const days = endDayIndex - startDayIndex + 1;
+      return sum + (hours * days);
     }, 0);
     const salary = totalHours * member.hourlyRate;
 

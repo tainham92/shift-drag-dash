@@ -8,7 +8,8 @@ export interface Staff {
 export interface Shift {
   id: string;
   staffId: string;
-  day: string;
+  startDay: string;
+  endDay: string;
   startTime: string;
   endTime: string;
 }

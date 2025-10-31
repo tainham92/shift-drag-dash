@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Staff, Shift } from "@/types/shift";
-import { getStaffColor, TIME_SLOTS, getTimeSlotIndex, DAYS } from "@/lib/timeUtils";
+import { getStaffColor, TIME_SLOTS, getTimeSlotIndex, DAYS, getDayIndex } from "@/lib/timeUtils";
 import { GripVertical, GripHorizontal } from "lucide-react";
 
 interface ResizableShiftProps {
   shift: Shift;
   staff: Staff;
-  day: string;
-  onResize: (shiftId: string, updates: { startTime?: string; endTime?: string; day?: string }) => void;
+  onResize: (shiftId: string, updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string }) => void;
   onRemove: (shiftId: string) => void;
 }
 
@@ -16,22 +15,26 @@ type ResizeEdge = "top" | "bottom" | "left" | "right" | null;
 export const ResizableShift = ({
   shift,
   staff,
-  day,
   onResize,
   onRemove,
 }: ResizableShiftProps) => {
   const [resizingEdge, setResizingEdge] = useState<ResizeEdge>(null);
   const shiftRef = useRef<HTMLDivElement>(null);
   const startPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const initialState = useRef<{ startTime: string; endTime: string; day: string }>({
+  const initialState = useRef<{ startTime: string; endTime: string; startDay: string; endDay: string }>({
     startTime: shift.startTime,
     endTime: shift.endTime,
-    day: shift.day,
+    startDay: shift.startDay,
+    endDay: shift.endDay,
   });
 
-  const startIndex = getTimeSlotIndex(shift.startTime);
-  const endIndex = getTimeSlotIndex(shift.endTime);
-  const rowSpan = Math.max(1, endIndex - startIndex);
+  const startTimeIndex = getTimeSlotIndex(shift.startTime);
+  const endTimeIndex = getTimeSlotIndex(shift.endTime);
+  const rowSpan = Math.max(1, endTimeIndex - startTimeIndex);
+
+  const startDayIndex = getDayIndex(shift.startDay);
+  const endDayIndex = getDayIndex(shift.endDay);
+  const colSpan = Math.max(1, endDayIndex - startDayIndex + 1);
 
   const color = getStaffColor(staff.colorIndex);
 
@@ -44,7 +47,7 @@ export const ResizableShift = ({
       const gridCell = shiftRef.current.parentElement;
       if (!gridCell) return;
 
-      const updates: { startTime?: string; endTime?: string; day?: string } = {};
+      const updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string } = {};
 
       if (resizingEdge === "bottom" || resizingEdge === "top") {
         // Vertical resize (time)
@@ -55,13 +58,13 @@ export const ResizableShift = ({
         if (resizingEdge === "bottom") {
           const newEndIndex = Math.min(
             TIME_SLOTS.length - 1,
-            Math.max(startIndex + 1, getTimeSlotIndex(initialState.current.endTime) + cellsMoved)
+            Math.max(startTimeIndex + 1, getTimeSlotIndex(initialState.current.endTime) + cellsMoved)
           );
           updates.endTime = TIME_SLOTS[newEndIndex];
         } else {
           const newStartIndex = Math.max(
             0,
-            Math.min(endIndex - 1, getTimeSlotIndex(initialState.current.startTime) + cellsMoved)
+            Math.min(endTimeIndex - 1, getTimeSlotIndex(initialState.current.startTime) + cellsMoved)
           );
           updates.startTime = TIME_SLOTS[newStartIndex];
         }
@@ -71,16 +74,19 @@ export const ResizableShift = ({
         const deltaX = e.clientX - startPos.current.x;
         const cellsMoved = Math.round(deltaX / cellWidth);
 
-        const currentDayIndex = DAYS.indexOf(initialState.current.day);
-        let newDayIndex = currentDayIndex;
-
         if (resizingEdge === "right") {
-          newDayIndex = Math.min(DAYS.length - 1, currentDayIndex + cellsMoved);
+          const newEndDayIndex = Math.min(
+            DAYS.length - 1,
+            Math.max(startDayIndex, getDayIndex(initialState.current.endDay) + cellsMoved)
+          );
+          updates.endDay = DAYS[newEndDayIndex];
         } else {
-          newDayIndex = Math.max(0, currentDayIndex + cellsMoved);
+          const newStartDayIndex = Math.max(
+            0,
+            Math.min(endDayIndex, getDayIndex(initialState.current.startDay) + cellsMoved)
+          );
+          updates.startDay = DAYS[newStartDayIndex];
         }
-
-        updates.day = DAYS[newDayIndex];
       }
 
       if (Object.keys(updates).length > 0) {
@@ -99,7 +105,7 @@ export const ResizableShift = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [resizingEdge, shift.id, startIndex, endIndex, onResize]);
+  }, [resizingEdge, shift.id, startTimeIndex, endTimeIndex, startDayIndex, endDayIndex, onResize]);
 
   const handleResizeStart = (edge: ResizeEdge) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,7 +115,8 @@ export const ResizableShift = ({
     initialState.current = {
       startTime: shift.startTime,
       endTime: shift.endTime,
-      day: shift.day,
+      startDay: shift.startDay,
+      endDay: shift.endDay,
     };
   };
 
@@ -128,6 +135,7 @@ export const ResizableShift = ({
       style={{
         backgroundColor: color,
         gridRow: `span ${rowSpan}`,
+        gridColumn: `span ${colSpan}`,
         zIndex: resizingEdge ? 50 : 10,
         opacity: resizingEdge ? 0.8 : 1,
       }}

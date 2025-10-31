@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { getNextTimeSlot, getTimeSlotIndex } from "@/lib/timeUtils";
+import { getNextTimeSlot, getTimeSlotIndex, getDayIndex, DAYS } from "@/lib/timeUtils";
 
 const INITIAL_STAFF: Staff[] = [
   { id: "1", name: "Staff 1", colorIndex: 0, hourlyRate: 15 },
@@ -35,11 +35,20 @@ export default function Schedule() {
     if (staffData && cellData) {
       // Check if the cell is already occupied
       const timeIndex = getTimeSlotIndex(cellData.time);
+      const dayIndex = getDayIndex(cellData.day);
+      
       const isOccupied = shifts.some((shift) => {
-        if (shift.day !== cellData.day) return false;
-        const shiftStartIndex = getTimeSlotIndex(shift.startTime);
-        const shiftEndIndex = getTimeSlotIndex(shift.endTime);
-        return timeIndex >= shiftStartIndex && timeIndex < shiftEndIndex;
+        const shiftStartTimeIndex = getTimeSlotIndex(shift.startTime);
+        const shiftEndTimeIndex = getTimeSlotIndex(shift.endTime);
+        const shiftStartDayIndex = getDayIndex(shift.startDay);
+        const shiftEndDayIndex = getDayIndex(shift.endDay);
+        
+        return (
+          timeIndex >= shiftStartTimeIndex &&
+          timeIndex < shiftEndTimeIndex &&
+          dayIndex >= shiftStartDayIndex &&
+          dayIndex <= shiftEndDayIndex
+        );
       });
 
       if (isOccupied) {
@@ -50,7 +59,8 @@ export default function Schedule() {
       const newShift: Shift = {
         id: `${staffData.id}-${cellData.day}-${cellData.time}-${Date.now()}`,
         staffId: staffData.id,
-        day: cellData.day,
+        startDay: cellData.day,
+        endDay: cellData.day,
         startTime: cellData.time,
         endTime: getNextTimeSlot(cellData.time),
       };
@@ -62,7 +72,7 @@ export default function Schedule() {
 
   const handleResizeShift = (
     shiftId: string,
-    updates: { startTime?: string; endTime?: string; day?: string }
+    updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string }
   ) => {
     setShifts((prev) =>
       prev.map((shift) =>

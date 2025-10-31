@@ -7,7 +7,7 @@ interface ScheduleGridProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
-  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; day?: string }) => void;
+  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string }) => void;
 }
 
 interface DroppableCellProps {
@@ -16,7 +16,7 @@ interface DroppableCellProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
-  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; day?: string }) => void;
+  onResizeShift: (shiftId: string, updates: { startTime?: string; endTime?: string; startDay?: string; endDay?: string }) => void;
 }
 
 const DroppableCell = ({ 
@@ -33,18 +33,26 @@ const DroppableCell = ({
   });
 
   const timeIndex = getTimeSlotIndex(time);
+  const dayIndex = DAYS.indexOf(day);
 
-  // Find shifts that start at this time slot
+  // Find shifts that start at this exact cell
   const cellShifts = shifts.filter(
-    (shift) => shift.day === day && shift.startTime === time
+    (shift) => shift.startDay === day && shift.startTime === time
   );
 
-  // Check if this cell is occupied by a shift that started earlier
+  // Check if this cell is occupied by any shift
   const isOccupied = shifts.some((shift) => {
-    if (shift.day !== day) return false;
-    const shiftStartIndex = getTimeSlotIndex(shift.startTime);
-    const shiftEndIndex = getTimeSlotIndex(shift.endTime);
-    return timeIndex > shiftStartIndex && timeIndex < shiftEndIndex;
+    const shiftStartTimeIndex = getTimeSlotIndex(shift.startTime);
+    const shiftEndTimeIndex = getTimeSlotIndex(shift.endTime);
+    const shiftStartDayIndex = DAYS.indexOf(shift.startDay);
+    const shiftEndDayIndex = DAYS.indexOf(shift.endDay);
+    
+    return (
+      timeIndex >= shiftStartTimeIndex &&
+      timeIndex < shiftEndTimeIndex &&
+      dayIndex >= shiftStartDayIndex &&
+      dayIndex <= shiftEndDayIndex
+    );
   });
 
   return (
@@ -64,7 +72,6 @@ const DroppableCell = ({
             key={shift.id}
             shift={shift}
             staff={staffMember}
-            day={day}
             onResize={onResizeShift}
             onRemove={onRemoveShift}
           />
