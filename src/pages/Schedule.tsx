@@ -298,22 +298,22 @@ export default function Schedule() {
         {viewMode === "week" ? (
           <>
             {/* Week Navigation */}
-            <Card className="p-4">
+            <Card className="px-4 py-2">
               <div className="flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
-                  <ChevronLeft className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousWeek}>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
-                <div className="flex items-center gap-4">
-                  <span className="text-lg font-semibold">{getWeekRange(weekStartDate)}</span>
-                  <Button variant="ghost" size="sm" onClick={handleToday}>
-                    <RotateCcw className="mr-2 h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold">{getWeekRange(weekStartDate)}</span>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleToday}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                     Today
                   </Button>
                 </div>
 
-                <Button variant="ghost" size="icon" onClick={handleNextWeek}>
-                  <ChevronRight className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextWeek}>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </Card>
@@ -326,24 +326,24 @@ export default function Schedule() {
         ) : (
           <>
             {/* Month Navigation */}
-            <Card className="p-4">
+            <Card className="px-4 py-2">
               <div className="flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={handlePreviousMonth}>
-                  <ChevronLeft className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePreviousMonth}>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
-                <div className="flex items-center gap-4">
-                  <span className="text-lg font-semibold">
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold">
                     {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                   </span>
-                  <Button variant="ghost" size="sm" onClick={handleThisMonth}>
-                    <RotateCcw className="mr-2 h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleThisMonth}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                     This Month
                   </Button>
                 </div>
 
-                <Button variant="ghost" size="icon" onClick={handleNextMonth}>
-                  <ChevronRight className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </Card>
