@@ -85,9 +85,9 @@ export const ScheduleGrid = ({
 
   return (
     <div className="overflow-auto">
-      <div className="inline-block min-w-full relative">
+      <div className="inline-block min-w-full">
         <div 
-          className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden select-none"
+          className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] gap-0 border border-border rounded-lg overflow-hidden select-none relative"
           onMouseLeave={() => setIsSelecting(false)}
         >
           {/* Header */}
@@ -124,57 +124,29 @@ export const ScheduleGrid = ({
               ))}
             </>
           ))}
-        </div>
+          
+          {/* Render shifts in the same grid */}
+          {shifts.map((shift) => {
+            const staffMember = staff.find((s) => s.id === shift.staffId);
+            if (!staffMember) return null;
 
-        {/* Render all shifts as absolute overlays */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div 
-            className="grid gap-0"
-            style={{
-              gridTemplateColumns: '100px repeat(7, minmax(120px, 1fr))',
-              gridTemplateRows: `auto repeat(${TIME_SLOTS.length}, minmax(3rem, auto))`
-            }}
-          >
-            {/* Match the exact structure of the main grid */}
-            {/* Header row - 8 cells */}
-            <div />
-            {DAYS.map((day) => <div key={`header-${day}`} />)}
-            
-            {/* Time slot rows */}
-            {TIME_SLOTS.map((time) => (
-              <>
-                {/* Time label cell */}
-                <div key={`time-${time}`} />
-                {/* Day cells */}
-                {DAYS.map((day) => (
-                  <div key={`cell-${day}-${time}`} />
-                ))}
-              </>
-            ))}
-            
-            {/* Render shifts */}
-            {shifts.map((shift) => {
-              const staffMember = staff.find((s) => s.id === shift.staffId);
-              if (!staffMember) return null;
+            const startRow = getTimeSlotIndex(shift.startTime) + 2;
+            const endRow = getTimeSlotIndex(shift.endTime) + 2;
+            const column = getDayIndex(shift.day) + 2;
 
-              const startRow = getTimeSlotIndex(shift.startTime) + 2;
-              const endRow = getTimeSlotIndex(shift.endTime) + 3;
-              const column = getDayIndex(shift.day) + 2;
-
-              return (
-                <ResizableShift
-                  key={shift.id}
-                  shift={shift}
-                  staff={staffMember}
-                  day={shift.day}
-                  onResize={onResizeShift}
-                  onRemove={onRemoveShift}
-                  gridRow={`${startRow} / ${endRow}`}
-                  gridColumn={column}
-                />
-              );
-            })}
-          </div>
+            return (
+              <ResizableShift
+                key={shift.id}
+                shift={shift}
+                staff={staffMember}
+                day={shift.day}
+                onResize={onResizeShift}
+                onRemove={onRemoveShift}
+                gridRow={`${startRow} / ${endRow + 1}`}
+                gridColumn={column}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
