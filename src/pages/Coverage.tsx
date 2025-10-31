@@ -8,16 +8,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, ChevronDown, LogOut, Users } from "lucide-react";
-import { format } from "date-fns";
+import { CalendarIcon, ChevronDown, LogOut, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
-import { TIME_SLOTS, calculateCoverageForTimeSlot, getCoverageIntensityColor, getStaffColor } from "@/lib/timeUtils";
+import { TIME_SLOTS, calculateCoverageForTimeSlot, getCoverageIntensityColor, getStaffColor, getWeekDates, DAYS } from "@/lib/timeUtils";
 import { Staff, Shift } from "@/types/shift";
 import { toast } from "sonner";
 
+const TIMEFRAMES = [
+  { label: "Morning", start: "8:30", end: "11:30" },
+  { label: "Afternoon", start: "11:30", end: "16:00" },
+  { label: "Evening", start: "16:30", end: "21:00" },
+];
+
 export default function Coverage() {
   const navigate = useNavigate();
-  const [date, setDate] = useState<Date>(new Date());
+  const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +36,7 @@ export default function Coverage() {
     if (!loading) {
       fetchData();
     }
-  }, [date, loading]);
+  }, [weekStart, loading]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -76,48 +82,75 @@ export default function Coverage() {
     navigate("/");
   };
 
-  const setToday = () => setDate(new Date());
-  const setYesterday = () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    setDate(yesterday);
-  };
-  const setTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setDate(tomorrow);
+  const setThisWeek = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const setPreviousWeek = () => setWeekStart(prev => subWeeks(prev, 1));
+  const setNextWeek = () => setWeekStart(prev => addWeeks(prev, 1));
+
+  const weekDates = getWeekDates(weekStart);
+
+  const getStaffForTimeframe = (timeframe: typeof TIMEFRAMES[0], date: Date) => {
+    const startIdx = TIME_SLOTS.indexOf(timeframe.start);
+    const endIdx = TIME_SLOTS.indexOf(timeframe.end);
+    
+    if (startIdx === -1 || endIdx === -1) return [];
+    
+    const staffSet = new Set<string>();
+    
+    for (let i = startIdx; i < endIdx; i++) {
+      const timeSlot = TIME_SLOTS[i];
+      const staffIds = calculateCoverageForTimeSlot(shifts, timeSlot, date);
+      staffIds.forEach(id => staffSet.add(id));
+    }
+    
+    return staff.filter(s => staffSet.has(s.id));
   };
 
   const getCoverageStats = () => {
-    const coverageBySlot = TIME_SLOTS.map(slot => {
-      const staffIds = calculateCoverageForTimeSlot(shifts, slot, date);
-      return { time: slot, count: staffIds.length };
+    let totalCoverage = 0;
+    let maxCoverage = 0;
+    let minCoverage = Infinity;
+    let maxTime = "";
+    let minTime = "";
+    let count = 0;
+
+    weekDates.forEach(date => {
+      TIMEFRAMES.forEach(timeframe => {
+        const staffCount = getStaffForTimeframe(timeframe, date).length;
+        totalCoverage += staffCount;
+        count++;
+        
+        if (staffCount > maxCoverage) {
+          maxCoverage = staffCount;
+          maxTime = `${format(date, "EEE")} ${timeframe.label}`;
+        }
+        if (staffCount < minCoverage) {
+          minCoverage = staffCount;
+          minTime = `${format(date, "EEE")} ${timeframe.label}`;
+        }
+      });
     });
 
-    const peakCoverage = coverageBySlot.reduce((max, curr) => 
-      curr.count > max.count ? curr : max, coverageBySlot[0]);
-    
-    const lowestCoverage = coverageBySlot.reduce((min, curr) => 
-      curr.count < min.count ? curr : min, coverageBySlot[0]);
-    
-    const avgCoverage = (coverageBySlot.reduce((sum, curr) => sum + curr.count, 0) / coverageBySlot.length).toFixed(1);
+    const avgCoverage = (totalCoverage / count).toFixed(1);
     
     const uniqueStaff = new Set(
       shifts
         .filter(s => {
-          const dateString = date.toISOString().split("T")[0];
-          const dayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()];
-          return (s.day === dateString || s.day === dayName) && (s.type === "regular" || s.type === "flexible");
+          const shiftMatchesWeek = weekDates.some(date => {
+            const dateString = date.toISOString().split("T")[0];
+            const dayName = DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1];
+            return (s.day === dateString || s.day === dayName) && (s.type === "regular" || s.type === "flexible");
+          });
+          return shiftMatchesWeek;
         })
         .map(s => s.staffId)
     ).size;
 
-    return { peakCoverage, lowestCoverage, avgCoverage, uniqueStaff };
-  };
-
-  const getStaffForTimeSlot = (timeSlot: string) => {
-    const staffIds = calculateCoverageForTimeSlot(shifts, timeSlot, date);
-    return staff.filter(s => staffIds.includes(s.id));
+    return { 
+      peakCoverage: { count: maxCoverage, time: maxTime },
+      lowestCoverage: { count: minCoverage === Infinity ? 0 : minCoverage, time: minTime },
+      avgCoverage,
+      uniqueStaff 
+    };
   };
 
   const getInitials = (name: string) => {
@@ -156,34 +189,38 @@ export default function Coverage() {
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Date Selection */}
+        {/* Week Selection */}
         <Card>
           <CardHeader>
-            <CardTitle>Select Date</CardTitle>
-            <CardDescription>Choose a date to view staff coverage</CardDescription>
+            <CardTitle>Select Week</CardTitle>
+            <CardDescription>Choose a week to view staff coverage</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-4">
+          <CardContent className="flex flex-wrap gap-4 items-center">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-[240px] justify-start text-left font-normal")}>
+                <Button variant="outline" className={cn("w-[280px] justify-start text-left font-normal")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(date, "PPP")}
+                  {format(weekStart, "MMM d")} - {format(addDays(weekStart, 6), "MMM d, yyyy")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={date}
-                  onSelect={(newDate) => newDate && setDate(newDate)}
+                  selected={weekStart}
+                  onSelect={(newDate) => newDate && setWeekStart(startOfWeek(newDate, { weekStartsOn: 1 }))}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
 
             <div className="flex gap-2">
-              <Button variant="secondary" onClick={setYesterday}>Yesterday</Button>
-              <Button variant="secondary" onClick={setToday}>Today</Button>
-              <Button variant="secondary" onClick={setTomorrow}>Tomorrow</Button>
+              <Button variant="outline" size="icon" onClick={setPreviousWeek}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="secondary" onClick={setThisWeek}>This Week</Button>
+              <Button variant="outline" size="icon" onClick={setNextWeek}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -226,63 +263,87 @@ export default function Coverage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.uniqueStaff}</div>
-              <p className="text-xs text-muted-foreground">working this day</p>
+              <p className="text-xs text-muted-foreground">working this week</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Timeline */}
+        {/* Week Coverage Grid */}
         <Card>
           <CardHeader>
-            <CardTitle>Coverage Timeline</CardTitle>
-            <CardDescription>Staff working at each time slot</CardDescription>
+            <CardTitle>Weekly Coverage Grid</CardTitle>
+            <CardDescription>Staff working in each timeframe throughout the week</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {TIME_SLOTS.map((timeSlot) => {
-              const staffAtTime = getStaffForTimeSlot(timeSlot);
-              const coverageClass = getCoverageIntensityColor(staffAtTime.length);
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border p-3 bg-muted font-semibold text-left min-w-[120px]">Time</th>
+                    {weekDates.map((date, idx) => (
+                      <th key={idx} className="border p-3 bg-muted font-semibold text-center min-w-[100px]">
+                        <div>{DAYS[idx]}</div>
+                        <div className="text-xs font-normal text-muted-foreground">{format(date, "MMM d")}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {TIMEFRAMES.map((timeframe) => (
+                    <tr key={timeframe.label}>
+                      <td className="border p-3 font-medium">
+                        <div>{timeframe.label}</div>
+                        <div className="text-xs text-muted-foreground">{timeframe.start} - {timeframe.end}</div>
+                      </td>
+                      {weekDates.map((date, idx) => {
+                        const staffInTimeframe = getStaffForTimeframe(timeframe, date);
+                        const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
 
-              return (
-                <Collapsible key={timeSlot}>
-                  <div className={cn("border rounded-lg p-4", coverageClass)}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono font-semibold text-lg min-w-[60px]">{timeSlot}</span>
-                        <Badge variant="secondary" className="gap-1">
-                          <Users className="h-3 w-3" />
-                          {staffAtTime.length} staff
-                        </Badge>
-                      </div>
-                      
-                      {staffAtTime.length > 0 && (
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </CollapsibleTrigger>
-                      )}
-                    </div>
+                        return (
+                          <td key={idx} className="border p-0">
+                            <Collapsible>
+                              <div className={cn("p-3 h-full", coverageClass)}>
+                                <div className="flex flex-col items-center gap-2">
+                                  <Badge variant="secondary" className="gap-1">
+                                    <Users className="h-3 w-3" />
+                                    {staffInTimeframe.length}
+                                  </Badge>
+                                  
+                                  {staffInTimeframe.length > 0 && (
+                                    <CollapsibleTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                        <ChevronDown className="h-3 w-3" />
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                  )}
+                                </div>
 
-                    {staffAtTime.length > 0 && (
-                      <CollapsibleContent className="mt-4">
-                        <div className="flex flex-wrap gap-3">
-                          {staffAtTime.map((s) => (
-                            <div key={s.id} className="flex items-center gap-2 bg-background/50 rounded-md px-3 py-2">
-                              <Avatar className="h-8 w-8" style={{ backgroundColor: getStaffColor(s.colorIndex) }}>
-                                <AvatarFallback className="text-white text-xs">
-                                  {getInitials(s.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-sm font-medium">{s.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CollapsibleContent>
-                    )}
-                  </div>
-                </Collapsible>
-              );
-            })}
+                                {staffInTimeframe.length > 0 && (
+                                  <CollapsibleContent className="mt-3">
+                                    <div className="space-y-2">
+                                      {staffInTimeframe.map((s) => (
+                                        <div key={s.id} className="flex items-center gap-2 bg-background/50 rounded-md px-2 py-1">
+                                          <Avatar className="h-6 w-6" style={{ backgroundColor: getStaffColor(s.colorIndex) }}>
+                                            <AvatarFallback className="text-white text-[10px]">
+                                              {getInitials(s.name)}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <span className="text-xs font-medium truncate">{s.name}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </CollapsibleContent>
+                                )}
+                              </div>
+                            </Collapsible>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>
