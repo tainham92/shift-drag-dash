@@ -63,68 +63,59 @@ const DroppableCell = ({
 export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: ScheduleGridProps) => {
   return (
     <div className="overflow-auto">
-      <div className="inline-block min-w-full">
-        <div className="relative">
-          <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0 border border-border rounded-lg overflow-hidden">
-            {/* Header */}
-            <div className="bg-primary text-primary-foreground font-semibold p-3 text-sm">
-              Time
+      <div className="inline-block min-w-full relative">
+        <div className="grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0 border border-border rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-primary text-primary-foreground font-semibold p-3 text-sm">
+            Time
+          </div>
+          {DAYS.map((day) => (
+            <div
+              key={day}
+              className="bg-primary text-primary-foreground font-semibold p-3 text-sm text-center"
+            >
+              {day}
             </div>
-            {DAYS.map((day) => (
+          ))}
+
+          {/* Time slots and cells */}
+          {TIME_SLOTS.map((time) => (
+            <>
               <div
-                key={day}
-                className="bg-primary text-primary-foreground font-semibold p-3 text-sm text-center"
+                key={`time-${time}`}
+                className="bg-secondary font-medium p-3 text-sm border-t border-border"
               >
-                {day}
+                {time}
               </div>
-            ))}
-
-            {/* Time slots and cells */}
-            {TIME_SLOTS.map((time) => (
-              <>
-                <div
-                  key={`time-${time}`}
-                  className="bg-secondary font-medium p-3 text-sm border-t border-border"
-                >
-                  {time}
-                </div>
-                {DAYS.map((day) => (
-                  <DroppableCell
-                    key={`${day}-${time}`}
-                    day={day}
-                    time={time}
-                    shifts={shifts}
-                    staff={staff}
-                    onRemoveShift={onRemoveShift}
-                    onResizeShift={onResizeShift}
-                  />
-                ))}
-              </>
-            ))}
-          </div>
-
-          {/* Render shifts as an overlay layer */}
-          <div 
-            className="absolute inset-0 grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0"
-          >
-            {/* Skip header row */}
-            <div className="col-span-8" />
-            
-            {shifts.map((shift) => {
-              const staffMember = staff.find((s) => s.id === shift.staffId);
-              if (!staffMember) return null;
-
-              return (
-                <ResizableShift
-                  key={shift.id}
-                  shift={shift}
-                  staff={staffMember}
-                  onResize={onResizeShift}
-                  onRemove={onRemoveShift}
+              {DAYS.map((day) => (
+                <DroppableCell
+                  key={`${day}-${time}`}
+                  day={day}
+                  time={time}
+                  shifts={shifts}
+                  staff={staff}
+                  onRemoveShift={onRemoveShift}
+                  onResizeShift={onResizeShift}
                 />
-              );
-            })}
-          </div>
+              ))}
+            </>
+          ))}
+
+          {/* Render all shifts as direct children of the grid */}
+          {shifts.map((shift) => {
+            const staffMember = staff.find((s) => s.id === shift.staffId);
+            if (!staffMember) return null;
+
+            return (
+              <ResizableShift
+                key={shift.id}
+                shift={shift}
+                staff={staffMember}
+                onResize={onResizeShift}
+                onRemove={onRemoveShift}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
