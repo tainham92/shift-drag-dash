@@ -46,10 +46,14 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
+                      style={({ isActive }) => ({
+                        color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary))',
+                        backgroundColor: isActive ? 'hsl(var(--primary))' : 'transparent'
+                      })}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-primary text-primary-foreground font-medium"
-                          : "!text-primary hover:bg-secondary hover:text-primary"
+                          ? "font-medium"
+                          : "hover:bg-secondary"
                       }
                     >
                       <item.icon className="h-4 w-4" />
