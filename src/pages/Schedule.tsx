@@ -37,6 +37,10 @@ export default function Schedule() {
     monday.setHours(0, 0, 0, 0);
     return monday;
   });
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
@@ -134,6 +138,23 @@ export default function Schedule() {
     monday.setDate(today.getDate() + diff);
     monday.setHours(0, 0, 0, 0);
     setWeekStartDate(monday);
+  };
+
+  const handlePreviousMonth = () => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() - 1);
+    setCurrentMonth(newMonth);
+  };
+
+  const handleNextMonth = () => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() + 1);
+    setCurrentMonth(newMonth);
+  };
+
+  const handleThisMonth = () => {
+    const today = new Date();
+    setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
   };
   const handleAddStaff = async (newStaff: Omit<Staff, "id">) => {
     if (!user) return;
@@ -247,8 +268,33 @@ export default function Schedule() {
             </Card>
           </>
         ) : (
-          /* Monthly Dashboard */
-          <MonthlyDashboard shifts={shifts} staff={staff} />
+          <>
+            {/* Month Navigation */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={handlePreviousMonth}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-semibold">
+                    {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={handleThisMonth}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    This Month
+                  </Button>
+                </div>
+
+                <Button variant="ghost" size="icon" onClick={handleNextMonth}>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            </Card>
+
+            {/* Monthly Dashboard */}
+            <MonthlyDashboard shifts={shifts} staff={staff} currentMonth={currentMonth} onAddShift={handleAddShift} />
+          </>
         )}
       </div>
 

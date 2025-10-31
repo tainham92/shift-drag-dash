@@ -14,6 +14,10 @@ const INITIAL_STAFF: Staff[] = [
 export default function Dashboard() {
   const [staff] = useState<Staff[]>(INITIAL_STAFF);
   const [shifts] = useState<Shift[]>([]);
+  const [currentMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -25,7 +29,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <MonthlyDashboard shifts={shifts} staff={staff} />
+        <MonthlyDashboard shifts={shifts} staff={staff} currentMonth={currentMonth} />
       </div>
     </div>
   );

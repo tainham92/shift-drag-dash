@@ -1,13 +1,18 @@
 import { Staff, Shift } from "@/types/shift";
-import { calculateHours, getStaffColor } from "@/lib/timeUtils";
+import { calculateHours, getStaffColor, getDayOfWeek } from "@/lib/timeUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface MonthlyDashboardProps {
   shifts: Shift[];
   staff: Staff[];
+  currentMonth: Date;
+  onAddShift?: (staffId: string, date: Date) => void;
 }
 
-export const MonthlyDashboard = ({ shifts, staff }: MonthlyDashboardProps) => {
+export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: MonthlyDashboardProps) => {
   const staffHours = staff.map((member) => {
     const memberShifts = shifts.filter((shift) => shift.staffId === member.id);
     const totalHours = memberShifts.reduce((sum, shift) => {
@@ -26,13 +31,76 @@ export const MonthlyDashboard = ({ shifts, staff }: MonthlyDashboardProps) => {
   const totalSalary = staffHours.reduce((sum, s) => sum + s.salary, 0);
   const totalHours = staffHours.reduce((sum, s) => sum + s.totalHours, 0);
 
+  // Get all days in the current month
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days: Date[] = [];
+    
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      days.push(new Date(d));
+    }
+    
+    return days;
+  };
+
+  const monthDays = getDaysInMonth(currentMonth);
+  const monthName = currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
+    const dayName = getDayOfWeek(date);
+    return shifts.filter(s => s.staffId === staffId && s.day === dayName);
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  // Group days into weeks for better layout
+  const getWeeksInMonth = () => {
+    const weeks: Date[][] = [];
+    let currentWeek: Date[] = [];
+    
+    monthDays.forEach((day, index) => {
+      if (index === 0) {
+        // Pad the first week with empty days
+        const dayOfWeek = day.getDay();
+        const paddingDays = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
+        for (let i = 0; i < paddingDays; i++) {
+          currentWeek.push(null as any);
+        }
+      }
+      
+      currentWeek.push(day);
+      
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+    
+    // Pad the last week if needed
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null as any);
+      }
+      weeks.push(currentWeek);
+    }
+    
+    return weeks;
+  };
+
+  const weeks = getWeeksInMonth();
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Hours
+              Total Hours ({monthName})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -63,6 +131,72 @@ export const MonthlyDashboard = ({ shifts, staff }: MonthlyDashboardProps) => {
         </Card>
       </div>
 
+      {/* Monthly Calendar Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{monthName} Schedule</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-auto">
+            {/* Calendar Header - Days of Week */}
+            <div className="grid grid-cols-7 border-b border-border bg-muted/50">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <div key={day} className="p-2 text-center text-sm font-semibold border-r last:border-r-0 border-border">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Body - Weeks */}
+            {weeks.map((week, weekIndex) => (
+              <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0 border-border min-h-[120px]">
+                {week.map((day, dayIndex) => (
+                  <div 
+                    key={dayIndex} 
+                    className={`border-r last:border-r-0 border-border p-2 ${!day ? 'bg-muted/20' : ''}`}
+                  >
+                    {day && (
+                      <>
+                        <div className="text-right text-sm font-semibold mb-2 text-muted-foreground">
+                          {day.getDate()}
+                        </div>
+                        <div className="space-y-1">
+                          {staff.map((staffMember) => {
+                            const dayShifts = getShiftsForStaffAndDay(staffMember.id, day);
+                            const color = getStaffColor(staffMember.colorIndex);
+                            
+                            if (dayShifts.length > 0) {
+                              return (
+                                <div 
+                                  key={staffMember.id}
+                                  className="flex items-center gap-1 p-1 rounded text-xs"
+                                  style={{ backgroundColor: `${color}20`, borderLeft: `2px solid ${color}` }}
+                                >
+                                  <Avatar className="h-4 w-4" style={{ backgroundColor: color }}>
+                                    <AvatarFallback className="text-white text-[8px]">
+                                      {getInitials(staffMember.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="truncate flex-1 text-foreground">
+                                    {staffMember.name.split(" ")[0]}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Staff Summary */}
       <Card>
         <CardHeader>
           <CardTitle>Staff Summary</CardTitle>
@@ -70,15 +204,7 @@ export const MonthlyDashboard = ({ shifts, staff }: MonthlyDashboardProps) => {
         <CardContent>
           <div className="space-y-4">
             {staffHours.map((member) => {
-              const colors = [
-                "hsl(var(--staff-1))",
-                "hsl(var(--staff-2))",
-                "hsl(var(--staff-3))",
-                "hsl(var(--staff-4))",
-                "hsl(var(--staff-5))",
-                "hsl(var(--staff-6))",
-              ];
-              const color = colors[member.colorIndex % colors.length];
+              const color = getStaffColor(member.colorIndex);
               
               return (
                 <div
