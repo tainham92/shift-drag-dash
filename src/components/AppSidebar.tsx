@@ -49,7 +49,7 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         isActive
                           ? "bg-primary text-primary-foreground font-medium"
-                          : "hover:bg-secondary"
+                          : "text-primary hover:bg-secondary"
                       }
                     >
                       <item.icon className="h-4 w-4" />
