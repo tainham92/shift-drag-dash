@@ -1,4 +1,4 @@
-import { Calendar, BarChart3, Users, Clock } from "lucide-react";
+import { Calendar, BarChart3, Users, Clock, Activity } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import melinenLogo from "@/assets/melinen-logo.png";
 import {
@@ -20,6 +20,7 @@ const items = [
   { title: "Employee", url: "/employee", icon: Users },
   { title: "Shift", url: "/shift", icon: Clock },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
+  { title: "Coverage", url: "/coverage", icon: Activity },
 ];
 
 export function AppSidebar() {

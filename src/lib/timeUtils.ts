@@ -81,3 +81,42 @@ export function generateRecurringDates(
   
   return dates;
 }
+
+export function isShiftActiveAtTime(
+  shift: { startTime: string; endTime: string },
+  timeSlot: string
+): boolean {
+  const slotIndex = getTimeSlotIndex(timeSlot);
+  const startIndex = getTimeSlotIndex(shift.startTime);
+  const endIndex = getTimeSlotIndex(shift.endTime);
+  
+  if (slotIndex === -1 || startIndex === -1 || endIndex === -1) return false;
+  
+  return slotIndex >= startIndex && slotIndex < endIndex;
+}
+
+export function calculateCoverageForTimeSlot(
+  shifts: Array<{ staffId: string; startTime: string; endTime: string; type: string; day: string }>,
+  timeSlot: string,
+  date: Date
+): string[] {
+  const dateString = date.toISOString().split("T")[0];
+  const dayName = getDayOfWeek(date);
+  
+  return shifts
+    .filter(shift => {
+      const matchesDate = shift.day === dateString || shift.day === dayName;
+      const isWorkingShift = shift.type === "regular" || shift.type === "flexible";
+      const isActive = isShiftActiveAtTime(shift, timeSlot);
+      
+      return matchesDate && isWorkingShift && isActive;
+    })
+    .map(shift => shift.staffId);
+}
+
+export function getCoverageIntensityColor(count: number): string {
+  if (count === 0) return "bg-red-100 text-red-900 border-red-200";
+  if (count === 1) return "bg-orange-100 text-orange-900 border-orange-200";
+  if (count <= 3) return "bg-yellow-100 text-yellow-900 border-yellow-200";
+  return "bg-green-100 text-green-900 border-green-200";
+}

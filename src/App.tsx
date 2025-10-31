@@ -9,6 +9,7 @@ import Schedule from "./pages/Schedule";
 import Employee from "./pages/Employee";
 import Shift from "./pages/Shift";
 import Dashboard from "./pages/Dashboard";
+import Coverage from "./pages/Coverage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
                 <Route path="/employee" element={<Employee />} />
                 <Route path="/shift" element={<Shift />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/coverage" element={<Coverage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
