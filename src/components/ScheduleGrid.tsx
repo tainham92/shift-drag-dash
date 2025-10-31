@@ -79,7 +79,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
           ))}
 
           {/* Time slots and cells */}
-          {TIME_SLOTS.map((time) => [
+          {TIME_SLOTS.flatMap((time) => [
             <div
               key={`time-${time}`}
               className="bg-secondary font-medium p-3 text-sm border-t border-border"
@@ -97,7 +97,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
                 onResizeShift={onResizeShift}
               />
             ))
-          ]).flat()}
+          ])}
 
           {/* Render all shifts as direct children of the grid */}
           {shifts.map((shift) => {
