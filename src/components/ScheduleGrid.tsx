@@ -79,27 +79,25 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
           ))}
 
           {/* Time slots and cells */}
-          {TIME_SLOTS.map((time) => (
-            <>
-              <div
-                key={`time-${time}`}
-                className="bg-secondary font-medium p-3 text-sm border-t border-border"
-              >
-                {time}
-              </div>
-              {DAYS.map((day) => (
-                <DroppableCell
-                  key={`${day}-${time}`}
-                  day={day}
-                  time={time}
-                  shifts={shifts}
-                  staff={staff}
-                  onRemoveShift={onRemoveShift}
-                  onResizeShift={onResizeShift}
-                />
-              ))}
-            </>
-          ))}
+          {TIME_SLOTS.map((time) => [
+            <div
+              key={`time-${time}`}
+              className="bg-secondary font-medium p-3 text-sm border-t border-border"
+            >
+              {time}
+            </div>,
+            ...DAYS.map((day) => (
+              <DroppableCell
+                key={`${day}-${time}`}
+                day={day}
+                time={time}
+                shifts={shifts}
+                staff={staff}
+                onRemoveShift={onRemoveShift}
+                onResizeShift={onResizeShift}
+              />
+            ))
+          ]).flat()}
 
           {/* Render all shifts as direct children of the grid */}
           {shifts.map((shift) => {
