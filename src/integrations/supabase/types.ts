@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      shifts: {
+        Row: {
+          created_at: string
+          day: string
+          end_time: string
+          id: string
+          staff_id: string
+          start_time: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          end_time: string
+          id?: string
+          staff_id: string
+          start_time: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          end_time?: string
+          id?: string
+          staff_id?: string
+          start_time?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           color_index: number

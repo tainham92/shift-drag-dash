@@ -62,9 +62,35 @@ export default function Schedule() {
   useEffect(() => {
     if (user) {
       fetchStaff();
+      fetchShifts();
       checkAdminRole();
     }
   }, [user]);
+
+  const fetchShifts = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("shifts")
+      .select("*")
+      .order("created_at", { ascending: true });
+    
+    if (error) {
+      toast.error("Failed to load shifts");
+      return;
+    }
+    
+    const shiftsData: Shift[] = (data || []).map(s => ({
+      id: s.id,
+      staffId: s.staff_id,
+      day: s.day,
+      startTime: s.start_time,
+      endTime: s.end_time,
+      type: s.type as ShiftType
+    }));
+    
+    setShifts(shiftsData);
+  };
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -103,20 +129,50 @@ export default function Schedule() {
     setSelectedDate(date);
     setShiftDialogOpen(true);
   };
-  const handleSaveShift = (startTime: string, endTime: string, type: ShiftType) => {
-    if (!selectedDate || !selectedStaffId) return;
+  const handleSaveShift = async (startTime: string, endTime: string, type: ShiftType) => {
+    if (!selectedDate || !selectedStaffId || !user) return;
+
+    const { data, error } = await supabase
+      .from("shifts")
+      .insert({
+        user_id: user.id,
+        staff_id: selectedStaffId,
+        day: getDayOfWeek(selectedDate),
+        start_time: startTime,
+        end_time: endTime,
+        type: type
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error("Failed to add shift");
+      return;
+    }
+
     const newShift: Shift = {
-      id: `${selectedStaffId}-${selectedDate.toISOString()}-${Date.now()}`,
-      staffId: selectedStaffId,
-      day: getDayOfWeek(selectedDate),
-      startTime,
-      endTime,
-      type
+      id: data.id,
+      staffId: data.staff_id,
+      day: data.day,
+      startTime: data.start_time,
+      endTime: data.end_time,
+      type: data.type as ShiftType
     };
+
     setShifts(prev => [...prev, newShift]);
     toast.success("Shift added");
   };
-  const handleShiftClick = (shift: Shift) => {
+  const handleShiftClick = async (shift: Shift) => {
+    const { error } = await supabase
+      .from("shifts")
+      .delete()
+      .eq("id", shift.id);
+
+    if (error) {
+      toast.error("Failed to remove shift");
+      return;
+    }
+
     setShifts(prev => prev.filter(s => s.id !== shift.id));
     toast.success("Shift removed");
   };
