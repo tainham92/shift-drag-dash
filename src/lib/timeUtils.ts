@@ -116,7 +116,7 @@ export function calculateCoverageForTimeSlot(
 
 export function getCoverageIntensityColor(count: number): string {
   if (count === 0) return "bg-red-100 text-red-900 border-red-200";
-  if (count === 1) return "bg-orange-100 text-orange-900 border-orange-200";
-  if (count <= 3) return "bg-yellow-100 text-yellow-900 border-yellow-200";
+  if (count === 1) return "bg-red-50 text-red-800 border-red-100";
+  if (count === 2) return "bg-green-50 text-green-800 border-green-100";
   return "bg-green-100 text-green-900 border-green-200";
 }
