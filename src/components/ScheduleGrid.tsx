@@ -106,7 +106,6 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: Sc
           {/* Render shifts as an overlay layer */}
           <div 
             className="absolute inset-0 grid grid-cols-[100px_repeat(7,minmax(120px,1fr))] auto-rows-[3rem] gap-0"
-            style={{ pointerEvents: 'none' }}
           >
             {/* Skip header row */}
             <div className="col-span-8" />
