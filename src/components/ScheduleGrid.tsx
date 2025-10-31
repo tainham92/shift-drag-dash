@@ -1,13 +1,13 @@
 import { useDroppable } from "@dnd-kit/core";
 import { Shift, Staff } from "@/types/shift";
-import { DAYS, TIME_SLOTS, getStaffColor } from "@/lib/timeUtils";
-import { X } from "lucide-react";
-import { Button } from "./ui/button";
+import { DAYS, TIME_SLOTS, getTimeSlotIndex } from "@/lib/timeUtils";
+import { ResizableShift } from "./ResizableShift";
 
 interface ScheduleGridProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
+  onResizeShift: (shiftId: string, newEndTime: string) => void;
 }
 
 interface DroppableCellProps {
@@ -16,71 +16,65 @@ interface DroppableCellProps {
   shifts: Shift[];
   staff: Staff[];
   onRemoveShift: (shiftId: string) => void;
+  onResizeShift: (shiftId: string, newEndTime: string) => void;
 }
 
-const DroppableCell = ({ day, time, shifts, staff, onRemoveShift }: DroppableCellProps) => {
+const DroppableCell = ({ 
+  day, 
+  time, 
+  shifts, 
+  staff, 
+  onRemoveShift,
+  onResizeShift 
+}: DroppableCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `${day}-${time}`,
     data: { day, time },
   });
 
+  const timeIndex = getTimeSlotIndex(time);
+
+  // Find shifts that start at this time slot
   const cellShifts = shifts.filter(
     (shift) => shift.day === day && shift.startTime === time
   );
 
+  // Check if this cell is occupied by a shift that started earlier
+  const isOccupied = shifts.some((shift) => {
+    if (shift.day !== day) return false;
+    const shiftStartIndex = getTimeSlotIndex(shift.startTime);
+    const shiftEndIndex = getTimeSlotIndex(shift.endTime);
+    return timeIndex > shiftStartIndex && timeIndex < shiftEndIndex;
+  });
+
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[3rem] border border-border p-1 transition-colors ${
-        isOver ? "bg-accent/20" : "bg-card"
+      className={`relative min-h-[3rem] border border-border transition-colors ${
+        isOver && !isOccupied ? "bg-accent/20" : "bg-card"
       }`}
+      style={{ position: "relative" }}
     >
       {cellShifts.map((shift) => {
         const staffMember = staff.find((s) => s.id === shift.staffId);
         if (!staffMember) return null;
 
-        const colors = [
-          "hsl(var(--staff-1))",
-          "hsl(var(--staff-2))",
-          "hsl(var(--staff-3))",
-          "hsl(var(--staff-4))",
-          "hsl(var(--staff-5))",
-          "hsl(var(--staff-6))",
-        ];
-        const color = colors[staffMember.colorIndex % colors.length];
-
         return (
-          <div
+          <ResizableShift
             key={shift.id}
-            className="group relative flex items-center gap-1 p-1.5 rounded text-xs font-medium mb-1"
-            style={{
-              backgroundColor: `${color}33`,
-              borderWidth: "1px",
-              borderStyle: "solid",
-              borderColor: `${color}66`,
-            }}
-          >
-            <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: color }}
-            />
-            <span className="truncate flex-1">{staffMember.name}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => onRemoveShift(shift.id)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
+            shift={shift}
+            staff={staffMember}
+            day={day}
+            onResize={onResizeShift}
+            onRemove={onRemoveShift}
+          />
         );
       })}
     </div>
   );
 };
 
-export const ScheduleGrid = ({ shifts, staff, onRemoveShift }: ScheduleGridProps) => {
+export const ScheduleGrid = ({ shifts, staff, onRemoveShift, onResizeShift }: ScheduleGridProps) => {
   return (
     <div className="overflow-auto">
       <div className="inline-block min-w-full">
@@ -115,6 +109,7 @@ export const ScheduleGrid = ({ shifts, staff, onRemoveShift }: ScheduleGridProps
                   shifts={shifts}
                   staff={staff}
                   onRemoveShift={onRemoveShift}
+                  onResizeShift={onResizeShift}
                 />
               ))}
             </>

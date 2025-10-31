@@ -19,7 +19,22 @@ export function calculateHours(startTime: string, endTime: string): number {
 
 export function getStaffColor(colorIndex: number): string {
   const colors = [
-    "staff-1", "staff-2", "staff-3", "staff-4", "staff-5", "staff-6"
+    "hsl(var(--staff-1))",
+    "hsl(var(--staff-2))",
+    "hsl(var(--staff-3))",
+    "hsl(var(--staff-4))",
+    "hsl(var(--staff-5))",
+    "hsl(var(--staff-6))",
   ];
   return colors[colorIndex % colors.length];
+}
+
+export function getTimeSlotIndex(time: string): number {
+  return TIME_SLOTS.indexOf(time);
+}
+
+export function getNextTimeSlot(time: string): string {
+  const index = getTimeSlotIndex(time);
+  if (index === -1 || index >= TIME_SLOTS.length - 1) return time;
+  return TIME_SLOTS[index + 1];
 }

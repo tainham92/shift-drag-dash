@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { getNextTimeSlot, getTimeSlotIndex } from "@/lib/timeUtils";
 
 const INITIAL_STAFF: Staff[] = [
   { id: "1", name: "Staff 1", colorIndex: 0, hourlyRate: 15 },
@@ -32,17 +33,39 @@ export default function Schedule() {
     const cellData = over.data.current as { day: string; time: string };
 
     if (staffData && cellData) {
+      // Check if the cell is already occupied
+      const timeIndex = getTimeSlotIndex(cellData.time);
+      const isOccupied = shifts.some((shift) => {
+        if (shift.day !== cellData.day) return false;
+        const shiftStartIndex = getTimeSlotIndex(shift.startTime);
+        const shiftEndIndex = getTimeSlotIndex(shift.endTime);
+        return timeIndex >= shiftStartIndex && timeIndex < shiftEndIndex;
+      });
+
+      if (isOccupied) {
+        toast.error("This time slot is already occupied");
+        return;
+      }
+
       const newShift: Shift = {
         id: `${staffData.id}-${cellData.day}-${cellData.time}-${Date.now()}`,
         staffId: staffData.id,
         day: cellData.day,
         startTime: cellData.time,
-        endTime: cellData.time,
+        endTime: getNextTimeSlot(cellData.time),
       };
 
       setShifts((prev) => [...prev, newShift]);
       toast.success(`Assigned ${staffData.name} to ${cellData.day} at ${cellData.time}`);
     }
+  };
+
+  const handleResizeShift = (shiftId: string, newEndTime: string) => {
+    setShifts((prev) =>
+      prev.map((shift) =>
+        shift.id === shiftId ? { ...shift, endTime: newEndTime } : shift
+      )
+    );
   };
 
   const handleRemoveShift = (shiftId: string) => {
@@ -95,6 +118,7 @@ export default function Schedule() {
                 shifts={shifts}
                 staff={staff}
                 onRemoveShift={handleRemoveShift}
+                onResizeShift={handleResizeShift}
               />
             </Card>
           </div>
