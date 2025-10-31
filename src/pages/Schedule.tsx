@@ -26,60 +26,68 @@ export default function Schedule() {
 
   const handleStaffClick = (staffId: string) => {
     if (selectedCells.size === 0) {
-      toast.error("Please select cells first");
+      toast.error("Please select time slots in the schedule first");
       return;
     }
 
     const selectedStaff = staff.find((s) => s.id === staffId);
     if (!selectedStaff) return;
 
-    // Group selected cells by day
-    const cellsByDay = new Map<string, string[]>();
+    // Group selected cells by staff and day
+    const cellsByStaffAndDay = new Map<string, Map<string, string[]>>();
     selectedCells.forEach((cellId) => {
-      const [day, time] = cellId.split("-");
-      if (!cellsByDay.has(day)) {
-        cellsByDay.set(day, []);
+      const [cellStaffId, day, time] = cellId.split("-");
+      
+      if (!cellsByStaffAndDay.has(cellStaffId)) {
+        cellsByStaffAndDay.set(cellStaffId, new Map());
       }
-      cellsByDay.get(day)!.push(time);
+      const staffMap = cellsByStaffAndDay.get(cellStaffId)!;
+      
+      if (!staffMap.has(day)) {
+        staffMap.set(day, []);
+      }
+      staffMap.get(day)!.push(time);
     });
 
-    // Create shifts for each day
+    // Create shifts for each staff/day combination
     const newShifts: Shift[] = [];
-    cellsByDay.forEach((times, day) => {
-      // Sort times and find continuous blocks
-      const timeIndices = times.map((t) => TIME_SLOTS.indexOf(t)).sort((a, b) => a - b);
-      
-      let blockStart = timeIndices[0];
-      let blockEnd = timeIndices[0];
+    cellsByStaffAndDay.forEach((dayMap, cellStaffId) => {
+      dayMap.forEach((times, day) => {
+        // Sort times and find continuous blocks
+        const timeIndices = times.map((t) => TIME_SLOTS.indexOf(t)).sort((a, b) => a - b);
+        
+        let blockStart = timeIndices[0];
+        let blockEnd = timeIndices[0];
 
-      for (let i = 1; i <= timeIndices.length; i++) {
-        if (i < timeIndices.length && timeIndices[i] === blockEnd + 1) {
-          blockEnd = timeIndices[i];
-        } else {
-          // Create shift for this continuous block
-          const startTime = TIME_SLOTS[blockStart];
-          const endTime = TIME_SLOTS[blockEnd];
-          
-          const newShift: Shift = {
-            id: `${staffId}-${day}-${startTime}-${Date.now()}-${newShifts.length}`,
-            staffId: staffId,
-            day: day,
-            startTime: startTime,
-            endTime: endTime,
-          };
-          newShifts.push(newShift);
-
-          if (i < timeIndices.length) {
-            blockStart = timeIndices[i];
+        for (let i = 1; i <= timeIndices.length; i++) {
+          if (i < timeIndices.length && timeIndices[i] === blockEnd + 1) {
             blockEnd = timeIndices[i];
+          } else {
+            // Create shift for this continuous block
+            const startTime = TIME_SLOTS[blockStart];
+            const endTime = TIME_SLOTS[blockEnd];
+            
+            const newShift: Shift = {
+              id: `${cellStaffId}-${day}-${startTime}-${Date.now()}-${newShifts.length}`,
+              staffId: cellStaffId,
+              day: day,
+              startTime: startTime,
+              endTime: endTime,
+            };
+            newShifts.push(newShift);
+
+            if (i < timeIndices.length) {
+              blockStart = timeIndices[i];
+              blockEnd = timeIndices[i];
+            }
           }
         }
-      }
+      });
     });
 
     setShifts((prev) => [...prev, ...newShifts]);
     setSelectedCells(new Set());
-    toast.success(`Assigned ${selectedStaff.name} to ${selectedCells.size} cell${selectedCells.size > 1 ? 's' : ''}`);
+    toast.success(`Created ${newShifts.length} shift${newShifts.length > 1 ? 's' : ''}`);
   };
 
   const handleResizeShift = (shiftId: string, newEndTime: string) => {
@@ -111,7 +119,7 @@ export default function Schedule() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Weekly Schedule</h1>
             <p className="text-muted-foreground mt-1">
-              Select cells in the schedule, then click a staff member to assign shifts
+              Click and drag time slots in each staff member's row to create shifts
             </p>
           </div>
         </div>

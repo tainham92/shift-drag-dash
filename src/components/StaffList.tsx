@@ -36,7 +36,7 @@ export const StaffList = ({ staff, onStaffClick }: StaffListProps) => {
         STAFF MEMBERS
       </h3>
       <p className="text-xs text-muted-foreground mb-3">
-        Select cells in the schedule, then click a staff member to assign
+        Click to edit staff details or delete
       </p>
       {staff.map((member) => (
         <StaffItem 
