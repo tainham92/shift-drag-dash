@@ -8,7 +8,7 @@ import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
 import type { Shift as ShiftType, Staff, ShiftType as ShiftTypeEnum } from "@/types/shift";
 import { Auth } from "@/components/Auth";
-import { getStaffColor } from "@/lib/timeUtils";
+import { getStaffColor, generateRecurringDates } from "@/lib/timeUtils";
 
 export default function Shift() {
   const [user, setUser] = useState<any>(null);
@@ -90,27 +90,57 @@ export default function Shift() {
   };
 
   const handleSaveShift = async (
-    type: ShiftTypeEnum,
     startTime: string,
-    endTime: string
+    endTime: string,
+    type: ShiftTypeEnum,
+    isRecurring?: boolean,
+    dateRange?: { startDate: Date; endDate: Date },
+    selectedDays?: string[]
   ) => {
     if (!selectedStaffId || !user) return;
 
-    const { error } = await supabase.from("shifts").insert({
-      user_id: user.id,
-      staff_id: selectedStaffId,
-      type,
-      start_time: startTime,
-      end_time: endTime,
-      day: new Date().toISOString().split("T")[0],
-    });
+    if (isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
+      const dates = generateRecurringDates(
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedDays
+      );
 
-    if (error) {
-      toast.error("Failed to add shift");
-      return;
+      const shiftsToInsert = dates.map((date) => ({
+        user_id: user.id,
+        staff_id: selectedStaffId,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: date,
+      }));
+
+      const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+
+      if (error) {
+        toast.error("Failed to add recurring shifts");
+        return;
+      }
+
+      toast.success(`Added ${dates.length} recurring shifts`);
+    } else {
+      const { error } = await supabase.from("shifts").insert({
+        user_id: user.id,
+        staff_id: selectedStaffId,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: new Date().toISOString().split("T")[0],
+      });
+
+      if (error) {
+        toast.error("Failed to add shift");
+        return;
+      }
+
+      toast.success("Shift added successfully");
     }
 
-    toast.success("Shift added successfully");
     fetchShifts();
   };
 

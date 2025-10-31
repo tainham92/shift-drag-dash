@@ -62,3 +62,22 @@ export function getNextTimeSlot(time: string): string {
   if (index === -1 || index >= TIME_SLOTS.length - 1) return time;
   return TIME_SLOTS[index + 1];
 }
+
+export function generateRecurringDates(
+  startDate: Date,
+  endDate: Date,
+  selectedDays: string[]
+): string[] {
+  const dates: string[] = [];
+  const current = new Date(startDate);
+  
+  while (current <= endDate) {
+    const dayOfWeek = getDayOfWeek(current);
+    if (selectedDays.includes(dayOfWeek)) {
+      dates.push(current.toISOString().split("T")[0]);
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return dates;
+}
