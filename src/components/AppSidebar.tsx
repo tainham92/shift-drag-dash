@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
+  { title: "Coverage", url: "/coverage", icon: Activity },
   { title: "Schedule", url: "/", icon: Calendar },
   { title: "Employee", url: "/employee", icon: Users },
   { title: "Shift", url: "/shift", icon: Clock },
   { title: "Dashboard", url: "/dashboard", icon: BarChart3 },
-  { title: "Coverage", url: "/coverage", icon: Activity },
 ];
 
 export function AppSidebar() {
