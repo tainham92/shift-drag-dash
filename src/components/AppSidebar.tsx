@@ -1,5 +1,6 @@
 import { Calendar, BarChart3, Users, Clock } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import melinenLogo from "@/assets/melinen-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -28,12 +29,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-              <Calendar className="h-5 w-5 text-primary-foreground" />
-            </div>
+          <div className="flex items-center justify-center">
             {open && (
-              <span className="text-lg font-bold text-foreground">ShiftManager</span>
+              <img src={melinenLogo} alt="Melinen" className="h-8 w-auto" />
+            )}
+            {!open && (
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                <Calendar className="h-5 w-5 text-primary-foreground" />
+              </div>
             )}
           </div>
         </div>
