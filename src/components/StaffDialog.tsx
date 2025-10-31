@@ -17,9 +17,19 @@ interface StaffDialogProps {
   onSave: (staff: Omit<Staff, "id">) => void;
 }
 
+const staffColors = [
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-orange-500",
+  "bg-cyan-500",
+];
+
 export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) => {
   const [name, setName] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
+  const [colorIndex, setColorIndex] = useState(0);
 
   const handleSave = () => {
     if (!name || !hourlyRate) return;
@@ -27,11 +37,12 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
     onSave({
       name,
       hourlyRate: parseFloat(hourlyRate),
-      colorIndex: Math.floor(Math.random() * 6),
+      colorIndex,
     });
 
     setName("");
     setHourlyRate("");
+    setColorIndex(0);
     onOpenChange(false);
   };
 
@@ -61,6 +72,24 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
               value={hourlyRate}
               onChange={(e) => setHourlyRate(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Color</Label>
+            <div className="flex gap-3">
+              {staffColors.map((color, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setColorIndex(index)}
+                  className={`w-10 h-10 rounded-full ${color} transition-all ${
+                    colorIndex === index
+                      ? "ring-4 ring-primary scale-110"
+                      : "hover:scale-105"
+                  }`}
+                  aria-label={`Select color ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
         <DialogFooter>
