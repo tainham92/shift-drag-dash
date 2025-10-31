@@ -3,9 +3,16 @@ import { Staff, Shift, ShiftType } from "@/types/shift";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { StaffDialog } from "@/components/StaffDialog";
 import { ShiftDialog } from "@/components/ShiftDialog";
+import { MonthlyDashboard } from "@/components/MonthlyDashboard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { UserPlus, ChevronLeft, ChevronRight, RotateCcw, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UserPlus, ChevronLeft, ChevronRight, RotateCcw, LogOut, Calendar, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { getDayOfWeek, getWeekRange } from "@/lib/timeUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +20,8 @@ import { Auth } from "@/components/Auth";
 export default function Schedule() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [staffDialogOpen, setStaffDialogOpen] = useState(false);
@@ -49,8 +58,23 @@ export default function Schedule() {
   useEffect(() => {
     if (user) {
       fetchStaff();
+      checkAdminRole();
     }
   }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+    
+    if (!error && data) {
+      setIsAdmin(data.role === "admin");
+    }
+  };
   const fetchStaff = async () => {
     const {
       data,
@@ -154,6 +178,35 @@ export default function Schedule() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Melinen Shift Board</h1>
           <div className="flex gap-2">
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    {viewMode === "week" ? (
+                      <>
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        Week View
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Month View
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem onClick={() => setViewMode("week")}>
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    Week View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setViewMode("month")}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Month View
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Button onClick={() => setStaffDialogOpen(true)} variant="outline" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
               <UserPlus className="mr-2 h-4 w-4" />
               Add Employee
@@ -165,31 +218,38 @@ export default function Schedule() {
           </div>
         </div>
 
-        {/* Week Navigation */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-lg font-semibold">{getWeekRange(weekStartDate)}</span>
-              <Button variant="ghost" size="sm" onClick={handleToday}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Today
-              </Button>
-            </div>
+        {viewMode === "week" ? (
+          <>
+            {/* Week Navigation */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={handlePreviousWeek}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-semibold">{getWeekRange(weekStartDate)}</span>
+                  <Button variant="ghost" size="sm" onClick={handleToday}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Today
+                  </Button>
+                </div>
 
-            <Button variant="ghost" size="icon" onClick={handleNextWeek}>
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </div>
-        </Card>
+                <Button variant="ghost" size="icon" onClick={handleNextWeek}>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            </Card>
 
-        {/* Schedule Grid */}
-        <Card className="overflow-hidden">
-          <ScheduleGrid shifts={shifts} staff={staff} weekStartDate={weekStartDate} onAddShift={handleAddShift} onShiftClick={handleShiftClick} />
-        </Card>
+            {/* Schedule Grid */}
+            <Card className="overflow-hidden">
+              <ScheduleGrid shifts={shifts} staff={staff} weekStartDate={weekStartDate} onAddShift={handleAddShift} onShiftClick={handleShiftClick} />
+            </Card>
+          </>
+        ) : (
+          /* Monthly Dashboard */
+          <MonthlyDashboard shifts={shifts} staff={staff} />
+        )}
       </div>
 
       <StaffDialog open={staffDialogOpen} onOpenChange={setStaffDialogOpen} onSave={handleAddStaff} />
