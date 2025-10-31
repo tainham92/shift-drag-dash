@@ -134,28 +134,28 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
                               return dayShifts.map((shift, index) => (
                                 <div 
                                   key={`${staffMember.id}-${index}`}
-                                  className="flex flex-col gap-0.5 p-1.5 rounded text-xs"
+                                  className="flex items-center justify-between gap-1 p-1.5 rounded text-xs"
                                   style={{ backgroundColor: `${color}20`, borderLeft: `2px solid ${color}` }}
                                 >
-                                  <div className="flex items-center gap-1">
-                                    <Avatar className="h-4 w-4" style={{ backgroundColor: color }}>
+                                  <div className="flex items-center gap-1 flex-1 min-w-0">
+                                    <Avatar className="h-4 w-4 flex-shrink-0" style={{ backgroundColor: color }}>
                                       <AvatarFallback className="text-white text-[8px]">
                                         {getInitials(staffMember.name)}
                                       </AvatarFallback>
                                     </Avatar>
-                                    <span className="truncate flex-1 text-foreground font-medium">
+                                    <span className="truncate text-foreground font-medium">
                                       {staffMember.name.split(" ")[0]}
                                     </span>
                                   </div>
-                                  {shift.type === "leave" ? (
-                                    <span className="text-[10px] text-muted-foreground pl-5">On leave</span>
-                                  ) : shift.type === "week-off" ? (
-                                    <span className="text-[10px] text-muted-foreground pl-5">Week off</span>
-                                  ) : (
-                                    <span className="text-[10px] text-muted-foreground pl-5">
-                                      {shift.startTime} - {shift.endTime}
-                                    </span>
-                                  )}
+                                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                                    {shift.type === "leave" ? (
+                                      "Leave"
+                                    ) : shift.type === "week-off" ? (
+                                      "Off"
+                                    ) : (
+                                      `${shift.startTime}-${shift.endTime}`
+                                    )}
+                                  </span>
                                 </div>
                               ));
                             }
