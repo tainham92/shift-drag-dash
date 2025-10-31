@@ -1,23 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Staff, Shift } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateHours, getStaffColor } from "@/lib/timeUtils";
 
-const INITIAL_STAFF: Staff[] = [
-  { id: "1", name: "Staff 1", colorIndex: 0, hourlyRate: 15 },
-  { id: "2", name: "Staff 2", colorIndex: 1, hourlyRate: 16 },
-  { id: "3", name: "Staff 3", colorIndex: 2, hourlyRate: 15.5 },
-  { id: "4", name: "Staff 4", colorIndex: 3, hourlyRate: 17 },
-  { id: "5", name: "Staff 5", colorIndex: 4, hourlyRate: 15 },
-  { id: "6", name: "Staff 6", colorIndex: 5, hourlyRate: 16.5 },
-];
-
 export default function Dashboard() {
-  const [staff] = useState<Staff[]>(INITIAL_STAFF);
-  const [shifts] = useState<Shift[]>([]);
+  const navigate = useNavigate();
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchData();
+    }
+  }, [loading]);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/");
+      return;
+    }
+    setLoading(false);
+  };
+
+  const normalizeTime = (time: string): string => {
+    // Convert "09:00" to "9:00" to match TIME_SLOTS format
+    const [hours, minutes] = time.split(":");
+    return `${parseInt(hours)}:${minutes}`;
+  };
+
+  const fetchData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [staffData, shiftsData] = await Promise.all([
+      supabase.from("staff").select("*").eq("user_id", user.id),
+      supabase.from("shifts").select("*").eq("user_id", user.id),
+    ]);
+
+    if (staffData.data) {
+      setStaff(staffData.data.map(s => ({
+        id: s.id,
+        name: s.name,
+        colorIndex: s.color_index,
+        hourlyRate: s.hourly_rate,
+      })));
+    }
+    
+    if (shiftsData.data) {
+      setShifts(shiftsData.data.map(s => ({
+        id: s.id,
+        staffId: s.staff_id,
+        day: s.day,
+        startTime: normalizeTime(s.start_time),
+        endTime: normalizeTime(s.end_time),
+        type: s.type as "regular" | "flexible" | "leave" | "week-off",
+      })));
+    }
+  };
 
   const staffHours = staff.map((member) => {
-    const memberShifts = shifts.filter((shift) => shift.staffId === member.id);
+    const memberShifts = shifts.filter(
+      (shift) => shift.staffId === member.id && (shift.type === "regular" || shift.type === "flexible")
+    );
     const totalHours = memberShifts.reduce((sum, shift) => {
       return sum + calculateHours(shift.startTime, shift.endTime);
     }, 0);
@@ -34,6 +86,14 @@ export default function Dashboard() {
   const totalSalary = staffHours.reduce((sum, s) => sum + s.salary, 0);
   const totalHours = staffHours.reduce((sum, s) => sum + s.totalHours, 0);
   const currentMonth = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
