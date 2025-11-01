@@ -85,7 +85,8 @@ export default function Shift() {
       joinedDate: member.joined_date,
       dateOfBirth: member.date_of_birth,
       nationalId: member.national_id,
-      education: member.education
+      education: member.education,
+      avatarUrl: member.avatar_url
     }));
 
     setStaff(mappedStaff);

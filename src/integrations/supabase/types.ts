@@ -60,6 +60,7 @@ export type Database = {
       }
       staff: {
         Row: {
+          avatar_url: string | null
           color_index: number
           created_at: string
           date_of_birth: string | null
@@ -74,6 +75,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
           color_index: number
           created_at?: string
           date_of_birth?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
           color_index?: number
           created_at?: string
           date_of_birth?: string | null

@@ -57,7 +57,8 @@ export default function Employee() {
       joinedDate: s.joined_date,
       dateOfBirth: s.date_of_birth,
       nationalId: s.national_id,
-      education: s.education
+      education: s.education,
+      avatarUrl: s.avatar_url
     }));
 
     setStaff(staffData);
@@ -92,7 +93,8 @@ export default function Employee() {
       joinedDate: data.joined_date,
       dateOfBirth: data.date_of_birth,
       nationalId: data.national_id,
-      education: data.education
+      education: data.education,
+      avatarUrl: data.avatar_url
     };
 
     setStaff(prev => [...prev, staff]);

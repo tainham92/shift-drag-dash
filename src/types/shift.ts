@@ -8,6 +8,7 @@ export interface Staff {
   nationalId?: string;
   joinedDate: string;
   education?: string;
+  avatarUrl?: string;
 }
 
 export type ShiftType = "regular" | "flexible" | "leave" | "week-off";

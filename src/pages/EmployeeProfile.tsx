@@ -3,19 +3,21 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign } from "lucide-react";
+import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Staff } from "@/types/shift";
 import { getStaffColor } from "@/lib/timeUtils";
 import { format } from "date-fns";
+import { EditEmployeeDialog } from "@/components/EditEmployeeDialog";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState<Staff | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchEmployee();
@@ -46,6 +48,7 @@ export default function EmployeeProfile() {
       nationalId: data.national_id,
       joinedDate: data.joined_date,
       education: data.education,
+      avatarUrl: data.avatar_url,
     };
 
     setEmployee(employeeData);
@@ -83,7 +86,11 @@ export default function EmployeeProfile() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-3xl font-bold">Employee Profile</h1>
+        <h1 className="text-3xl font-bold flex-1">Employee Profile</h1>
+        <Button onClick={() => setEditDialogOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Profile
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -93,11 +100,15 @@ export default function EmployeeProfile() {
             <div className="flex justify-center mb-4">
               <Avatar
                 className="h-24 w-24"
-                style={{ backgroundColor: getStaffColor(employee.colorIndex) }}
+                style={{ backgroundColor: employee.avatarUrl ? undefined : getStaffColor(employee.colorIndex) }}
               >
-                <AvatarFallback className="text-white text-2xl">
-                  {getInitials(employee.name)}
-                </AvatarFallback>
+                {employee.avatarUrl ? (
+                  <AvatarImage src={employee.avatarUrl} alt={employee.name} />
+                ) : (
+                  <AvatarFallback className="text-white text-2xl">
+                    {getInitials(employee.name)}
+                  </AvatarFallback>
+                )}
               </Avatar>
             </div>
             <CardTitle className="text-2xl">{employee.name}</CardTitle>
@@ -177,6 +188,13 @@ export default function EmployeeProfile() {
           </CardContent>
         </Card>
       </div>
+
+      <EditEmployeeDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        employee={employee}
+        onUpdate={fetchEmployee}
+      />
     </div>
   );
 }
