@@ -6,12 +6,7 @@ import { ShiftDialog } from "@/components/ShiftDialog";
 import { MonthlyDashboard } from "@/components/MonthlyDashboard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserPlus, ChevronLeft, ChevronRight, RotateCcw, LogOut, Calendar, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { getDayOfWeek, getWeekRange } from "@/lib/timeUtils";
@@ -66,20 +61,18 @@ export default function Schedule() {
       checkAdminRole();
     }
   }, [user]);
-
   const fetchShifts = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("shifts")
-      .select("*")
-      .order("created_at", { ascending: true });
-    
+    const {
+      data,
+      error
+    } = await supabase.from("shifts").select("*").order("created_at", {
+      ascending: true
+    });
     if (error) {
       toast.error("Failed to load shifts");
       return;
     }
-    
     const shiftsData: Shift[] = (data || []).map(s => ({
       id: s.id,
       staffId: s.staff_id,
@@ -88,19 +81,14 @@ export default function Schedule() {
       endTime: s.end_time,
       type: s.type as ShiftType
     }));
-    
     setShifts(shiftsData);
   };
-
   const checkAdminRole = async () => {
     if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-    
+    const {
+      data,
+      error
+    } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
     if (!error && data) {
       setIsAdmin(data.role === "admin");
     }
@@ -131,25 +119,21 @@ export default function Schedule() {
   };
   const handleSaveShift = async (startTime: string, endTime: string, type: ShiftType) => {
     if (!selectedDate || !selectedStaffId || !user) return;
-
-    const { data, error } = await supabase
-      .from("shifts")
-      .insert({
-        user_id: user.id,
-        staff_id: selectedStaffId,
-        day: getDayOfWeek(selectedDate),
-        start_time: startTime,
-        end_time: endTime,
-        type: type
-      })
-      .select()
-      .single();
-
+    const {
+      data,
+      error
+    } = await supabase.from("shifts").insert({
+      user_id: user.id,
+      staff_id: selectedStaffId,
+      day: getDayOfWeek(selectedDate),
+      start_time: startTime,
+      end_time: endTime,
+      type: type
+    }).select().single();
     if (error) {
       toast.error("Failed to add shift");
       return;
     }
-
     const newShift: Shift = {
       id: data.id,
       staffId: data.staff_id,
@@ -158,21 +142,17 @@ export default function Schedule() {
       endTime: data.end_time,
       type: data.type as ShiftType
     };
-
     setShifts(prev => [...prev, newShift]);
     toast.success("Shift added");
   };
   const handleShiftClick = async (shift: Shift) => {
-    const { error } = await supabase
-      .from("shifts")
-      .delete()
-      .eq("id", shift.id);
-
+    const {
+      error
+    } = await supabase.from("shifts").delete().eq("id", shift.id);
     if (error) {
       toast.error("Failed to remove shift");
       return;
     }
-
     setShifts(prev => prev.filter(s => s.id !== shift.id));
     toast.success("Shift removed");
   };
@@ -195,19 +175,16 @@ export default function Schedule() {
     monday.setHours(0, 0, 0, 0);
     setWeekStartDate(monday);
   };
-
   const handlePreviousMonth = () => {
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(currentMonth.getMonth() - 1);
     setCurrentMonth(newMonth);
   };
-
   const handleNextMonth = () => {
     const newMonth = new Date(currentMonth);
     newMonth.setMonth(currentMonth.getMonth() + 1);
     setCurrentMonth(newMonth);
   };
-
   const handleThisMonth = () => {
     const today = new Date();
     setCurrentMonth(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -253,23 +230,18 @@ export default function Schedule() {
       <div className="max-w-[1800px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Melinen Shift Board</h1>
+          <h1 className="text-3xl font-bold text-foreground">Shift Board</h1>
           <div className="flex gap-2">
-            {isAdmin && (
-              <DropdownMenu>
+            {isAdmin && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
-                    {viewMode === "week" ? (
-                      <>
+                    {viewMode === "week" ? <>
                         <CalendarDays className="mr-2 h-4 w-4" />
                         Week View
-                      </>
-                    ) : (
-                      <>
+                      </> : <>
                         <Calendar className="mr-2 h-4 w-4" />
                         Month View
-                      </>
-                    )}
+                      </>}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-background">
@@ -282,8 +254,7 @@ export default function Schedule() {
                     Month View
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+              </DropdownMenu>}
             <Button onClick={() => setStaffDialogOpen(true)} variant="outline" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
               <UserPlus className="mr-2 h-4 w-4" />
               Add Employee
@@ -295,8 +266,7 @@ export default function Schedule() {
           </div>
         </div>
 
-        {viewMode === "week" ? (
-          <>
+        {viewMode === "week" ? <>
             {/* Week Navigation */}
             <Card className="px-4 py-2">
               <div className="flex items-center justify-between">
@@ -322,9 +292,7 @@ export default function Schedule() {
             <Card className="overflow-hidden">
               <ScheduleGrid shifts={shifts} staff={staff} weekStartDate={weekStartDate} onAddShift={handleAddShift} onShiftClick={handleShiftClick} />
             </Card>
-          </>
-        ) : (
-          <>
+          </> : <>
             {/* Month Navigation */}
             <Card className="px-4 py-2">
               <div className="flex items-center justify-between">
@@ -334,7 +302,10 @@ export default function Schedule() {
                 
                 <div className="flex items-center gap-3">
                   <span className="text-base font-semibold">
-                    {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    {currentMonth.toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric"
+                })}
                   </span>
                   <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleThisMonth}>
                     <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
@@ -350,8 +321,7 @@ export default function Schedule() {
 
             {/* Monthly Dashboard */}
             <MonthlyDashboard shifts={shifts} staff={staff} currentMonth={currentMonth} onAddShift={handleAddShift} />
-          </>
-        )}
+          </>}
       </div>
 
       <StaffDialog open={staffDialogOpen} onOpenChange={setStaffDialogOpen} onSave={handleAddStaff} />
