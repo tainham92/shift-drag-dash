@@ -297,12 +297,11 @@ export default function Coverage() {
                       {weekDates.map((date, idx) => {
                     const staffInTimeframe = getStaffForTimeframe(timeframe, date);
                     const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
-                    return <td key={idx} className="border border-border/40 p-0 relative group/cell">
-                            <div className={cn(
-                              "p-2 transition-all duration-300",
+                    return <td key={idx} className={cn(
+                              "border border-border/40 p-2 relative group/cell transition-all duration-300",
                               "hover:shadow-lg hover:scale-[1.02] hover:z-10",
                               coverageClass,
-                              staffInTimeframe.length === 0 && "min-h-[60px] flex items-center justify-center"
+                              staffInTimeframe.length === 0 && "min-h-[60px]"
                             )}>
                               {staffInTimeframe.length > 0 ? <div className="flex flex-col">
                                   {staffInTimeframe.map(s => <div 
@@ -318,11 +317,12 @@ export default function Coverage() {
                                       </Avatar>
                                       <span className="text-xs text-foreground/90">{s.name}</span>
                                     </div>)}
-                                </div> : <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
+                                </div> : <div className="flex items-center justify-center min-h-[60px]">
+                                  <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
                                     <Users className="h-3.5 w-3.5" />
                                     No coverage
-                                  </Badge>}
-                            </div>
+                                  </Badge>
+                                </div>}
                           </td>;
                   })}
                     </tr>)}
