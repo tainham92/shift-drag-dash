@@ -49,6 +49,9 @@ export function getStaffColor(colorIndex: number): string {
     "hsl(var(--staff-4))",
     "hsl(var(--staff-5))",
     "hsl(var(--staff-6))",
+    "hsl(var(--staff-7))",
+    "hsl(var(--staff-8))",
+    "hsl(var(--staff-9))",
   ];
   return colors[colorIndex % colors.length];
 }
