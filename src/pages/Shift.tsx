@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Clock } from "lucide-react";
+import { Plus, Trash2, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
@@ -17,6 +17,7 @@ export default function Shift() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [editingShift, setEditingShift] = useState<ShiftType | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -86,6 +87,13 @@ export default function Shift() {
 
   const handleAddShift = (staffId: string) => {
     setSelectedStaffId(staffId);
+    setEditingShift(null);
+    setShiftDialogOpen(true);
+  };
+
+  const handleEditShift = (shift: ShiftType) => {
+    setSelectedStaffId(shift.staffId);
+    setEditingShift(shift);
     setShiftDialogOpen(true);
   };
 
@@ -95,9 +103,31 @@ export default function Shift() {
     type: ShiftTypeEnum,
     isRecurring?: boolean,
     dateRange?: { startDate: Date; endDate: Date },
-    selectedDays?: string[]
+    selectedDays?: string[],
+    shiftId?: string
   ) => {
     if (!selectedStaffId || !user) return;
+
+    // If editing an existing shift
+    if (shiftId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+        })
+        .eq("id", shiftId);
+
+      if (error) {
+        toast.error("Failed to update shift");
+        return;
+      }
+
+      toast.success("Shift updated successfully");
+      fetchShifts();
+      return;
+    }
 
     if (isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
       const dates = generateRecurringDates(
@@ -243,13 +273,22 @@ export default function Shift() {
                               </span>
                             )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteShift(shift.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditShift(shift)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteShift(shift.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -269,6 +308,7 @@ export default function Shift() {
         open={shiftDialogOpen}
         onOpenChange={setShiftDialogOpen}
         onSave={handleSaveShift}
+        editShift={editingShift}
       />
     </div>
   );

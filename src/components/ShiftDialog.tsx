@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShiftType } from "@/types/shift";
+import { ShiftType, Shift } from "@/types/shift";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -22,12 +22,14 @@ interface ShiftDialogProps {
     type: ShiftType,
     isRecurring?: boolean,
     dateRange?: { startDate: Date; endDate: Date },
-    selectedDays?: string[]
+    selectedDays?: string[],
+    shiftId?: string
   ) => void;
   defaultType?: ShiftType;
+  editShift?: Shift | null;
 }
 
-export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular" }: ShiftDialogProps) => {
+export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift }: ShiftDialogProps) => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [shiftType, setShiftType] = useState<ShiftType>(defaultType);
@@ -36,11 +38,25 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
   const [endDate, setEndDate] = useState<Date>();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
+  useEffect(() => {
+    if (editShift) {
+      setStartTime(editShift.startTime);
+      setEndTime(editShift.endTime);
+      setShiftType(editShift.type);
+      setIsRecurring(false);
+    } else {
+      setStartTime("09:00");
+      setEndTime("18:00");
+      setShiftType(defaultType);
+      setIsRecurring(false);
+    }
+  }, [editShift, defaultType]);
+
   const handleSave = () => {
     if (isRecurring && startDate && endDate && selectedDays.length > 0) {
-      onSave(startTime, endTime, shiftType, true, { startDate, endDate }, selectedDays);
+      onSave(startTime, endTime, shiftType, true, { startDate, endDate }, selectedDays, editShift?.id);
     } else {
-      onSave(startTime, endTime, shiftType);
+      onSave(startTime, endTime, shiftType, false, undefined, undefined, editShift?.id);
     }
     onOpenChange(false);
     setStartTime("09:00");
@@ -70,7 +86,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Shift</DialogTitle>
+          <DialogTitle>{editShift ? "Edit Shift" : "Add Shift"}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
