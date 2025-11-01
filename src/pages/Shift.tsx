@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square } from "lucide-react";
+import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square, X } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
@@ -12,6 +12,7 @@ import { Auth } from "@/components/Auth";
 import { getStaffColor, generateRecurringDates } from "@/lib/timeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 export default function Shift() {
   const [user, setUser] = useState<any>(null);
@@ -516,7 +517,60 @@ export default function Shift() {
                                       : "-"
                                     }
                                   </td>
-                                  <td className="p-2">{uniqueDayNames}</td>
+                                   <td className="p-2">
+                                     <div className="flex flex-wrap gap-1.5 items-center">
+                                       {[...new Set(group.days.map(d => d.dayName))].map((dayName) => {
+                                         const dayShifts = group.days.filter(d => d.dayName === dayName);
+                                         return (
+                                           <Badge 
+                                             key={dayName} 
+                                             variant="secondary"
+                                             className="gap-1 pr-1"
+                                           >
+                                             {dayName}
+                                             <button
+                                               onClick={async (e) => {
+                                                 e.stopPropagation();
+                                                 const shiftIds = dayShifts.map(d => d.shiftId);
+                                                 const { error } = await supabase
+                                                   .from("shifts")
+                                                   .delete()
+                                                   .in("id", shiftIds);
+                                                 
+                                                 if (error) {
+                                                   toast.error("Failed to remove day");
+                                                   return;
+                                                 }
+                                                 
+                                                 toast.success(`Removed ${dayName}`);
+                                                 fetchShifts();
+                                               }}
+                                               className="hover:bg-secondary-foreground/20 rounded-full p-0.5 transition-colors"
+                                             >
+                                               <X className="h-3 w-3" />
+                                             </button>
+                                           </Badge>
+                                         );
+                                       })}
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         className="h-6 w-6 p-0 rounded-full"
+                                         onClick={async (e) => {
+                                           e.stopPropagation();
+                                           // For now, let's just open the shift dialog to add more days
+                                           const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
+                                           if (firstShift) {
+                                             setSelectedStaffId(firstShift.staffId);
+                                             setEditingShift(null);
+                                             setShiftDialogOpen(true);
+                                           }
+                                         }}
+                                       >
+                                         <Plus className="h-3.5 w-3.5" />
+                                       </Button>
+                                     </div>
+                                   </td>
                                   <td className="p-2">{group.startDate}</td>
                                   <td className="p-2">{group.endDate}</td>
                                   <td className="p-2 text-right">
