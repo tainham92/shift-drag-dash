@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ChevronDown, LogOut, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks, subWeeks } from "date-fns";
@@ -317,8 +317,11 @@ export default function Coverage() {
                                       className="flex items-center gap-2 py-0.5"
                                     >
                                       <Avatar className="h-6 w-6" style={{
-                              backgroundColor: getStaffColor(s.colorIndex)
+                              backgroundColor: s.avatarUrl ? undefined : getStaffColor(s.colorIndex)
                             }}>
+                                        {s.avatarUrl && (
+                                          <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                        )}
                                         <AvatarFallback className="text-white text-[10px]">
                                           {getInitials(s.name)}
                                         </AvatarFallback>
