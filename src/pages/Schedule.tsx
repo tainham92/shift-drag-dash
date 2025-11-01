@@ -109,7 +109,11 @@ export default function Schedule() {
       name: s.name,
       colorIndex: s.color_index,
       hourlyRate: s.hourly_rate,
-      employmentType: s.employment_type as "full-time" | "part-time"
+      employmentType: s.employment_type as "full-time" | "part-time",
+      joinedDate: s.joined_date,
+      dateOfBirth: s.date_of_birth,
+      nationalId: s.national_id,
+      education: s.education
     }));
     setStaff(staffData);
   };
@@ -211,7 +215,11 @@ export default function Schedule() {
       name: data.name,
       colorIndex: data.color_index,
       hourlyRate: data.hourly_rate,
-      employmentType: data.employment_type as "full-time" | "part-time"
+      employmentType: data.employment_type as "full-time" | "part-time",
+      joinedDate: data.joined_date,
+      dateOfBirth: data.date_of_birth,
+      nationalId: data.national_id,
+      education: data.education
     };
     setStaff(prev => [...prev, staff]);
     toast.success(`${staff.name} added to staff`);

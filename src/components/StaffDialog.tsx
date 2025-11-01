@@ -41,6 +41,7 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
       hourlyRate: parseFloat(hourlyRate),
       colorIndex,
       employmentType,
+      joinedDate: new Date().toISOString().split('T')[0]
     });
 
     setName("");

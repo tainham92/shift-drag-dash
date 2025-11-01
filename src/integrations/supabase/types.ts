@@ -62,30 +62,42 @@ export type Database = {
         Row: {
           color_index: number
           created_at: string
+          date_of_birth: string | null
+          education: string | null
           employment_type: string
           hourly_rate: number
           id: string
+          joined_date: string
           name: string
+          national_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           color_index: number
           created_at?: string
+          date_of_birth?: string | null
+          education?: string | null
           employment_type?: string
           hourly_rate: number
           id?: string
+          joined_date?: string
           name: string
+          national_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           color_index?: number
           created_at?: string
+          date_of_birth?: string | null
+          education?: string | null
           employment_type?: string
           hourly_rate?: number
           id?: string
+          joined_date?: string
           name?: string
+          national_id?: string | null
           updated_at?: string
           user_id?: string
         }

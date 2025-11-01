@@ -4,6 +4,10 @@ export interface Staff {
   colorIndex: number;
   hourlyRate: number;
   employmentType: "full-time" | "part-time";
+  dateOfBirth?: string;
+  nationalId?: string;
+  joinedDate: string;
+  education?: string;
 }
 
 export type ShiftType = "regular" | "flexible" | "leave" | "week-off";

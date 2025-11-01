@@ -51,7 +51,11 @@ export default function Employee() {
       name: s.name,
       colorIndex: s.color_index,
       hourlyRate: s.hourly_rate,
-      employmentType: s.employment_type as "full-time" | "part-time"
+      employmentType: s.employment_type as "full-time" | "part-time",
+      joinedDate: s.joined_date,
+      dateOfBirth: s.date_of_birth,
+      nationalId: s.national_id,
+      education: s.education
     }));
 
     setStaff(staffData);
@@ -82,7 +86,11 @@ export default function Employee() {
       name: data.name,
       colorIndex: data.color_index,
       hourlyRate: data.hourly_rate,
-      employmentType: data.employment_type as "full-time" | "part-time"
+      employmentType: data.employment_type as "full-time" | "part-time",
+      joinedDate: data.joined_date,
+      dateOfBirth: data.date_of_birth,
+      nationalId: data.national_id,
+      education: data.education
     };
 
     setStaff(prev => [...prev, staff]);
@@ -227,12 +235,22 @@ export default function Employee() {
                         </Avatar>
                         <div>
                           <p className="font-semibold text-lg">{member.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            ${member.hourlyRate.toFixed(2)}/hour
-                          </p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>${member.hourlyRate.toFixed(2)}/hour</span>
+                            <span>•</span>
+                            <span className="capitalize">{member.employmentType}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/employee/${member.id}`)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Profile
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

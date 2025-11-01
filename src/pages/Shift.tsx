@@ -81,7 +81,11 @@ export default function Shift() {
       name: member.name,
       colorIndex: member.color_index,
       hourlyRate: member.hourly_rate,
-      employmentType: member.employment_type as "full-time" | "part-time"
+      employmentType: member.employment_type as "full-time" | "part-time",
+      joinedDate: member.joined_date,
+      dateOfBirth: member.date_of_birth,
+      nationalId: member.national_id,
+      education: member.education
     }));
 
     setStaff(mappedStaff);
