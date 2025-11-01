@@ -299,14 +299,15 @@ export default function Coverage() {
                     const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
                     return <td key={idx} className="border border-border/40 p-0 relative group/cell">
                             <div className={cn(
-                              "p-3 h-full min-h-[100px] transition-all duration-300",
+                              "p-2 min-h-[60px] transition-all duration-300 flex items-start",
                               "hover:shadow-lg hover:scale-[1.02] hover:z-10",
-                              coverageClass
+                              coverageClass,
+                              staffInTimeframe.length === 0 && "items-center justify-center"
                             )}>
-                              {staffInTimeframe.length > 0 ? <div className="space-y-1.5">
+                              {staffInTimeframe.length > 0 ? <div className="flex flex-col gap-1 w-full">
                                   {staffInTimeframe.map(s => <div 
                                       key={s.id} 
-                                      className="flex items-center gap-2 px-1"
+                                      className="flex items-center gap-2"
                                     >
                                       <Avatar className="h-6 w-6" style={{
                               backgroundColor: getStaffColor(s.colorIndex)
@@ -317,12 +318,10 @@ export default function Coverage() {
                                       </Avatar>
                                       <span className="text-xs text-foreground/90">{s.name}</span>
                                     </div>)}
-                                </div> : <div className="flex flex-col items-center justify-center h-full">
-                                  <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
+                                </div> : <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
                                     <Users className="h-3.5 w-3.5" />
                                     No coverage
-                                  </Badge>
-                                </div>}
+                                  </Badge>}
                             </div>
                           </td>;
                   })}
