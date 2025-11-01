@@ -105,7 +105,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
             </Select>
           </div>
 
-          {shiftType === "regular" && (
+          {(shiftType === "regular" || shiftType === "flexible") && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="start">Start Time</Label>
