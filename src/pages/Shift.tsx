@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Plus, Trash2, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
@@ -266,73 +267,82 @@ export default function Shift() {
             <CardTitle>All Shifts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <Accordion type="single" collapsible className="w-full">
               {staff.map((member) => (
-                <div key={member.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: getStaffColor(member.colorIndex) }}
-                      />
-                      <h3 className="font-semibold">{member.name}</h3>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAddShift(member.id)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Shift
-                    </Button>
-                  </div>
-
-                  {groupedShifts[member.id]?.length > 0 ? (
-                    <div className="space-y-2">
-                      {groupedShifts[member.id].map((shift) => (
+                <AccordionItem key={member.id} value={member.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center gap-3">
                         <div
-                          key={shift.id}
-                          className="flex items-center justify-between bg-secondary/50 rounded p-3"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium capitalize">
-                              {shift.type}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {shift.day}
-                            </span>
-                            {shift.type === "regular" && (
-                              <span className="text-sm">
-                                {shift.startTime} - {shift.endTime}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditShift(shift)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteShift(shift.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: getStaffColor(member.colorIndex) }}
+                        />
+                        <h3 className="font-semibold">{member.name}</h3>
+                        <span className="text-sm text-muted-foreground">
+                          ({groupedShifts[member.id]?.length || 0} shifts)
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddShift(member.id);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Shift
+                      </Button>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No shifts assigned
-                    </p>
-                  )}
-                </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {groupedShifts[member.id]?.length > 0 ? (
+                      <div className="space-y-2 pt-2">
+                        {groupedShifts[member.id].map((shift) => (
+                          <div
+                            key={shift.id}
+                            className="flex items-center justify-between bg-secondary/50 rounded p-3"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium capitalize">
+                                {shift.type}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                {shift.day}
+                              </span>
+                              {shift.type === "regular" && (
+                                <span className="text-sm">
+                                  {shift.startTime} - {shift.endTime}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditShift(shift)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteShift(shift.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground pt-2">
+                        No shifts assigned
+                      </p>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
           </CardContent>
         </Card>
       </div>
