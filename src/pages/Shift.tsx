@@ -3,13 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Clock, Pencil } from "lucide-react";
+import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
 import type { Shift as ShiftType, Staff, ShiftType as ShiftTypeEnum } from "@/types/shift";
 import { Auth } from "@/components/Auth";
 import { getStaffColor, generateRecurringDates } from "@/lib/timeUtils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Shift() {
   const [user, setUser] = useState<any>(null);
@@ -19,6 +21,9 @@ export default function Shift() {
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [editingShift, setEditingShift] = useState<ShiftType | null>(null);
+  const [selectedShifts, setSelectedShifts] = useState<Set<string>>(new Set());
+  const [filterType, setFilterType] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("date-asc");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -244,6 +249,72 @@ export default function Shift() {
     return staff.find((s) => s.id === staffId);
   };
 
+  const handleSelectShift = (shiftId: string) => {
+    const newSelected = new Set(selectedShifts);
+    if (newSelected.has(shiftId)) {
+      newSelected.delete(shiftId);
+    } else {
+      newSelected.add(shiftId);
+    }
+    setSelectedShifts(newSelected);
+  };
+
+  const handleSelectAllStaffShifts = (staffShifts: ShiftType[]) => {
+    const staffShiftIds = staffShifts.map(s => s.id);
+    const allSelected = staffShiftIds.every(id => selectedShifts.has(id));
+    
+    const newSelected = new Set(selectedShifts);
+    if (allSelected) {
+      staffShiftIds.forEach(id => newSelected.delete(id));
+    } else {
+      staffShiftIds.forEach(id => newSelected.add(id));
+    }
+    setSelectedShifts(newSelected);
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedShifts.size === 0) return;
+
+    const { error } = await supabase
+      .from("shifts")
+      .delete()
+      .in("id", Array.from(selectedShifts));
+
+    if (error) {
+      toast.error("Failed to delete shifts");
+      return;
+    }
+
+    toast.success(`Deleted ${selectedShifts.size} shift(s)`);
+    setSelectedShifts(new Set());
+    fetchShifts();
+  };
+
+  const filterAndSortShifts = (staffShifts: ShiftType[]) => {
+    let filtered = staffShifts;
+
+    // Filter by type
+    if (filterType !== "all") {
+      filtered = filtered.filter(shift => shift.type === filterType);
+    }
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc":
+          return a.day.localeCompare(b.day);
+        case "date-desc":
+          return b.day.localeCompare(a.day);
+        case "type":
+          return a.type.localeCompare(b.type);
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -270,7 +341,50 @@ export default function Shift() {
       <div className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>All Shifts</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>All Shifts</CardTitle>
+              <div className="flex items-center gap-3">
+                {selectedShifts.size > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {selectedShifts.size} selected
+                    </span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBatchDelete}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete Selected
+                    </Button>
+                  </div>
+                )}
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-[140px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="regular">Regular</SelectItem>
+                    <SelectItem value="flexible">Flexible</SelectItem>
+                    <SelectItem value="leave">Leave</SelectItem>
+                    <SelectItem value="week-off">Week Off</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[140px]">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-asc">Date (Oldest)</SelectItem>
+                    <SelectItem value="date-desc">Date (Newest)</SelectItem>
+                    <SelectItem value="type">Type</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
@@ -306,6 +420,15 @@ export default function Shift() {
                         <table className="w-full text-sm">
                           <thead className="border-b bg-muted/50">
                             <tr>
+                              <th className="w-10 p-2">
+                                <Checkbox
+                                  checked={
+                                    filterAndSortShifts(groupedShifts[member.id]).length > 0 &&
+                                    filterAndSortShifts(groupedShifts[member.id]).every(s => selectedShifts.has(s.id))
+                                  }
+                                  onCheckedChange={() => handleSelectAllStaffShifts(filterAndSortShifts(groupedShifts[member.id]))}
+                                />
+                              </th>
                               <th className="text-left p-2 font-medium">Type</th>
                               <th className="text-left p-2 font-medium">Date</th>
                               <th className="text-left p-2 font-medium">Time</th>
@@ -313,11 +436,17 @@ export default function Shift() {
                             </tr>
                           </thead>
                           <tbody>
-                            {groupedShifts[member.id].map((shift, idx) => (
+                            {filterAndSortShifts(groupedShifts[member.id]).map((shift, idx) => (
                               <tr 
                                 key={shift.id} 
                                 className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}
                               >
+                                <td className="p-2">
+                                  <Checkbox
+                                    checked={selectedShifts.has(shift.id)}
+                                    onCheckedChange={() => handleSelectShift(shift.id)}
+                                  />
+                                </td>
                                 <td className="p-2 capitalize">{shift.type}</td>
                                 <td className="p-2 text-muted-foreground">{shift.day}</td>
                                 <td className="p-2">
@@ -353,7 +482,7 @@ export default function Shift() {
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground pt-2">
-                        No shifts assigned
+                        {filterType !== "all" ? "No shifts match the current filter" : "No shifts assigned"}
                       </p>
                     )}
                   </AccordionContent>
