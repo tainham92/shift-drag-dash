@@ -251,7 +251,7 @@ export default function Employee() {
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg leading-tight">{member.name}</h3>
-                        <p className="text-sm text-muted-foreground">{member.position || "Employee"}</p>
+                        <p className="text-sm text-muted-foreground">{member.position || "—"}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -272,7 +272,7 @@ export default function Employee() {
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Banknote className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">Salary (gross)</span>
+                      <span className="text-muted-foreground">Hourly Rate</span>
                       <span className="ml-auto text-primary font-semibold">
                         ${member.hourlyRate.toFixed(2)}/hr
                       </span>
