@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Staff } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { UserPlus, Trash2, LogOut, Phone, Mail, MapPin, Banknote } from "lucide-react";
 import { StaffDialog } from "@/components/StaffDialog";
 import { getStaffColor } from "@/lib/timeUtils";
@@ -232,8 +233,13 @@ export default function Employee() {
               return (
                 <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-4">
-                    <div className="text-xs font-medium text-muted-foreground mb-4">
-                      Currently Employed
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
+                        Active
+                      </Badge>
+                      <Badge variant="outline">
+                        {member.employmentType === "full-time" ? "Full-time" : "Part-time"}
+                      </Badge>
                     </div>
                     <div className="flex items-center gap-3">
                       {member.avatarUrl ? (
