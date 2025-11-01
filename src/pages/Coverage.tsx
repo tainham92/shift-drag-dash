@@ -183,11 +183,16 @@ export default function Coverage() {
       <div className="max-w-[1800px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Staff Coverage Timeline</h1>
-          <Button onClick={handleLogout} variant="ghost">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Melinen Shift Board</h1>
+            <p className="text-sm text-muted-foreground mt-1">Staff Coverage Timeline</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleLogout} variant="ghost">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </div>
         {/* Week Selection and Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
