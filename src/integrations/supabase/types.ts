@@ -62,6 +62,7 @@ export type Database = {
         Row: {
           color_index: number
           created_at: string
+          employment_type: string
           hourly_rate: number
           id: string
           name: string
@@ -71,6 +72,7 @@ export type Database = {
         Insert: {
           color_index: number
           created_at?: string
+          employment_type?: string
           hourly_rate: number
           id?: string
           name: string
@@ -80,6 +82,7 @@ export type Database = {
         Update: {
           color_index?: number
           created_at?: string
+          employment_type?: string
           hourly_rate?: number
           id?: string
           name?: string

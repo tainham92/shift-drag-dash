@@ -108,7 +108,8 @@ export default function Schedule() {
       id: s.id,
       name: s.name,
       colorIndex: s.color_index,
-      hourlyRate: s.hourly_rate
+      hourlyRate: s.hourly_rate,
+      employmentType: s.employment_type as "full-time" | "part-time"
     }));
     setStaff(staffData);
   };
@@ -198,7 +199,8 @@ export default function Schedule() {
       user_id: user.id,
       name: newStaff.name,
       color_index: newStaff.colorIndex,
-      hourly_rate: newStaff.hourlyRate
+      hourly_rate: newStaff.hourlyRate,
+      employment_type: newStaff.employmentType
     }).select().single();
     if (error) {
       toast.error("Failed to add staff");
@@ -208,7 +210,8 @@ export default function Schedule() {
       id: data.id,
       name: data.name,
       colorIndex: data.color_index,
-      hourlyRate: data.hourly_rate
+      hourlyRate: data.hourly_rate,
+      employmentType: data.employment_type as "full-time" | "part-time"
     };
     setStaff(prev => [...prev, staff]);
     toast.success(`${staff.name} added to staff`);

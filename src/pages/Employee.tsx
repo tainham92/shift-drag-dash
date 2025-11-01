@@ -50,7 +50,8 @@ export default function Employee() {
       id: s.id,
       name: s.name,
       colorIndex: s.color_index,
-      hourlyRate: s.hourly_rate
+      hourlyRate: s.hourly_rate,
+      employmentType: s.employment_type as "full-time" | "part-time"
     }));
 
     setStaff(staffData);
@@ -65,7 +66,8 @@ export default function Employee() {
         user_id: user.id,
         name: newStaff.name,
         color_index: newStaff.colorIndex,
-        hourly_rate: newStaff.hourlyRate
+        hourly_rate: newStaff.hourlyRate,
+        employment_type: newStaff.employmentType
       })
       .select()
       .single();
@@ -79,7 +81,8 @@ export default function Employee() {
       id: data.id,
       name: data.name,
       colorIndex: data.color_index,
-      hourlyRate: data.hourly_rate
+      hourlyRate: data.hourly_rate,
+      employmentType: data.employment_type as "full-time" | "part-time"
     };
 
     setStaff(prev => [...prev, staff]);

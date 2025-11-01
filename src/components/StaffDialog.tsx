@@ -9,6 +9,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Staff } from "@/types/shift";
 
 interface StaffDialogProps {
@@ -30,6 +31,7 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
   const [name, setName] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [colorIndex, setColorIndex] = useState(0);
+  const [employmentType, setEmploymentType] = useState<"full-time" | "part-time">("full-time");
 
   const handleSave = () => {
     if (!name || !hourlyRate) return;
@@ -38,11 +40,13 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
       name,
       hourlyRate: parseFloat(hourlyRate),
       colorIndex,
+      employmentType,
     });
 
     setName("");
     setHourlyRate("");
     setColorIndex(0);
+    setEmploymentType("full-time");
     onOpenChange(false);
   };
 
@@ -61,6 +65,18 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="employment-type">Employment Type</Label>
+            <Select value={employmentType} onValueChange={(value: "full-time" | "part-time") => setEmploymentType(value)}>
+              <SelectTrigger id="employment-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="full-time">Full-time</SelectItem>
+                <SelectItem value="part-time">Part-time</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="rate">Hourly Rate ($)</Label>

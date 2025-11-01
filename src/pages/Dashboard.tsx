@@ -51,6 +51,7 @@ export default function Dashboard() {
         name: s.name,
         colorIndex: s.color_index,
         hourlyRate: s.hourly_rate,
+        employmentType: s.employment_type as "full-time" | "part-time"
       })));
     }
     

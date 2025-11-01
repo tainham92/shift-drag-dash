@@ -81,6 +81,7 @@ export default function Shift() {
       name: member.name,
       colorIndex: member.color_index,
       hourlyRate: member.hourly_rate,
+      employmentType: member.employment_type as "full-time" | "part-time"
     }));
 
     setStaff(mappedStaff);

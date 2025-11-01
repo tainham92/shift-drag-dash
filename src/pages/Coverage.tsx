@@ -72,7 +72,8 @@ export default function Coverage() {
         id: s.id,
         name: s.name,
         colorIndex: s.color_index,
-        hourlyRate: s.hourly_rate
+        hourlyRate: s.hourly_rate,
+        employmentType: s.employment_type as "full-time" | "part-time"
       })));
     }
     if (shiftsData.data) {
