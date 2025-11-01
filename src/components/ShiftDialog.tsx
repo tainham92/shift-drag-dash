@@ -129,6 +129,62 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
             </>
           )}
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>End Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
           <div className="flex items-center space-x-2">
             <Checkbox
               id="recurring"
@@ -141,105 +197,47 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
           </div>
 
           {isRecurring && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !startDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, "PPP") : "Pick date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>End Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !endDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate ? format(endDate, "PPP") : "Pick date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={setEndDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+            <div className="space-y-2">
+              <Label>Repeat on</Label>
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={selectWeekdays}
+                >
+                  Weekdays
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={selectWeekend}
+                >
+                  Weekend
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label>Repeat on</Label>
-                <div className="flex gap-2 mb-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={selectWeekdays}
+              <div className="grid grid-cols-7 gap-2">
+                {DAYS.map((day) => (
+                  <div
+                    key={day}
+                    className="flex flex-col items-center gap-1"
                   >
-                    Weekdays
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={selectWeekend}
-                  >
-                    Weekend
-                  </Button>
-                </div>
-                <div className="grid grid-cols-7 gap-2">
-                  {DAYS.map((day) => (
-                    <div
-                      key={day}
-                      className="flex flex-col items-center gap-1"
+                    <Checkbox
+                      id={day}
+                      checked={selectedDays.includes(day)}
+                      onCheckedChange={() => toggleDay(day)}
+                    />
+                    <Label
+                      htmlFor={day}
+                      className="text-xs font-normal cursor-pointer"
                     >
-                      <Checkbox
-                        id={day}
-                        checked={selectedDays.includes(day)}
-                        onCheckedChange={() => toggleDay(day)}
-                      />
-                      <Label
-                        htmlFor={day}
-                        className="text-xs font-normal cursor-pointer"
-                      >
-                        {day}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                      {day}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            </>
+            </div>
           )}
         </div>
 
