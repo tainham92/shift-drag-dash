@@ -108,7 +108,40 @@ export default function Shift() {
   ) => {
     if (!selectedStaffId || !user) return;
 
-    // If editing an existing shift
+    // If editing an existing shift and converting to recurring
+    if (shiftId && isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
+      // Delete the original shift
+      await supabase.from("shifts").delete().eq("id", shiftId);
+
+      // Create all recurring shifts
+      const dates = generateRecurringDates(
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedDays
+      );
+
+      const shiftsToInsert = dates.map((date) => ({
+        user_id: user.id,
+        staff_id: selectedStaffId,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: date,
+      }));
+
+      const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+
+      if (error) {
+        toast.error("Failed to create recurring shifts");
+        return;
+      }
+
+      toast.success(`Created ${dates.length} recurring shifts`);
+      fetchShifts();
+      return;
+    }
+
+    // If editing an existing shift (non-recurring)
     if (shiftId) {
       const { error } = await supabase
         .from("shifts")
