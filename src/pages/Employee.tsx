@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Staff } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Pencil, Trash2, LogOut } from "lucide-react";
+import { UserPlus, Trash2, LogOut, Eye } from "lucide-react";
 import { StaffDialog } from "@/components/StaffDialog";
 import { getStaffColor } from "@/lib/timeUtils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { Auth } from "@/components/Auth";
 
 export default function Employee() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [staff, setStaff] = useState<Staff[]>([]);
