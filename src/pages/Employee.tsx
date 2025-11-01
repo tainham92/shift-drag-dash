@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Staff } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Trash2, LogOut, Eye } from "lucide-react";
+import { UserPlus, Trash2, LogOut, Phone, Mail, MapPin, Banknote } from "lucide-react";
 import { StaffDialog } from "@/components/StaffDialog";
 import { getStaffColor } from "@/lib/timeUtils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -203,73 +203,90 @@ export default function Employee() {
           </Card>
         </div>
 
-        {/* Staff List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Employees</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {staff.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No employees added yet.</p>
-                <Button
-                  onClick={() => setStaffDialogOpen(true)}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add Your First Employee
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {staff.map((member) => {
-                  const color = getStaffColor(member.colorIndex);
-                  
-                  return (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12" style={{ backgroundColor: color }}>
-                          <AvatarFallback className="text-white font-medium">
+        {/* Staff Grid */}
+        {staff.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <p className="text-muted-foreground">No employees added yet.</p>
+              <Button
+                onClick={() => setStaffDialogOpen(true)}
+                variant="outline"
+                className="mt-4"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Your First Employee
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {staff.map((member) => {
+              const color = getStaffColor(member.colorIndex);
+              
+              return (
+                <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="text-xs font-medium text-muted-foreground mb-4">
+                      Currently Employed
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {member.avatarUrl ? (
+                        <img 
+                          src={member.avatarUrl} 
+                          alt={member.name}
+                          className="h-14 w-14 rounded-full object-cover"
+                        />
+                      ) : (
+                        <Avatar className="h-14 w-14" style={{ backgroundColor: color }}>
+                          <AvatarFallback className="text-white font-medium text-lg">
                             {getInitials(member.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-semibold text-lg">{member.name}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>${member.hourlyRate.toFixed(2)}/hour</span>
-                            <span>•</span>
-                            <span className="capitalize">{member.employmentType}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/employee/${member.id}`)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Profile
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteStaff(member.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg leading-tight">{member.name}</h3>
+                        <p className="text-sm text-muted-foreground capitalize">{member.employmentType} employee</p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pb-4">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Phone</span>
+                      <span className="ml-auto text-primary">—</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">E-mail</span>
+                      <span className="ml-auto text-primary">—</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Address</span>
+                      <span className="ml-auto text-primary">—</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Banknote className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Salary (gross)</span>
+                      <span className="ml-auto text-primary font-semibold">
+                        ${member.hourlyRate.toFixed(2)}/hr
+                      </span>
+                    </div>
+                  </CardContent>
+                  <div className="px-6 pb-6">
+                    <Button
+                      onClick={() => navigate(`/employee/${member.id}`)}
+                      variant="secondary"
+                      className="w-full"
+                    >
+                      View Employee Profile
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <StaffDialog
