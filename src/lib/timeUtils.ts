@@ -115,8 +115,10 @@ export function calculateCoverageForTimeSlot(
 }
 
 export function getCoverageIntensityColor(count: number): string {
-  if (count === 0) return "bg-red-100 text-red-900 border-red-200";
-  if (count === 1) return "bg-red-50 text-red-800 border-red-100";
-  if (count === 2) return "bg-green-50 text-green-800 border-green-100";
-  return "bg-green-100 text-green-900 border-green-200";
+  // Sophisticated gradient-based heatmap colors
+  if (count === 0) return "bg-gradient-to-br from-red-50 to-red-100/80 border-red-200/50";
+  if (count === 1) return "bg-gradient-to-br from-amber-50 to-orange-100/80 border-orange-200/50";
+  if (count === 2) return "bg-gradient-to-br from-emerald-50 to-green-100/80 border-green-200/50";
+  if (count === 3) return "bg-gradient-to-br from-teal-50 to-teal-100/80 border-teal-200/50";
+  return "bg-gradient-to-br from-blue-50 to-indigo-100/80 border-blue-200/50";
 }

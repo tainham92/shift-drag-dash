@@ -246,42 +246,56 @@ export default function Coverage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+              <table className="w-full border-collapse overflow-hidden rounded-lg">
                 <thead>
                   <tr>
-                    <th className="border p-3 bg-muted font-semibold text-left min-w-[120px]">Time</th>
-                    {weekDates.map((date, idx) => <th key={idx} className="border p-3 bg-muted font-semibold text-center min-w-[100px]">
-                        <div>{DAYS[idx]}</div>
-                        <div className="text-xs font-normal text-muted-foreground">{format(date, "MMM d")}</div>
+                    <th className="border border-border/40 p-4 bg-muted/50 font-semibold text-left min-w-[140px] text-sm">
+                      <div className="text-muted-foreground">Timeframe</div>
+                    </th>
+                    {weekDates.map((date, idx) => <th key={idx} className="border border-border/40 p-4 bg-muted/50 font-semibold text-center min-w-[140px]">
+                        <div className="text-base font-bold text-foreground">{DAYS[idx]}</div>
+                        <div className="text-xs font-normal text-muted-foreground mt-1">{format(date, "MMM d")}</div>
                       </th>)}
                   </tr>
                 </thead>
                 <tbody>
-                  {TIMEFRAMES.map(timeframe => <tr key={timeframe.label}>
-                      <td className="border p-3 font-medium">
-                        <div>{timeframe.label}</div>
-                        <div className="text-xs text-muted-foreground">{timeframe.start} - {timeframe.end}</div>
+                  {TIMEFRAMES.map((timeframe, tfIdx) => <tr key={timeframe.label} className="group">
+                      <td className="border border-border/40 p-4 font-semibold bg-muted/30">
+                        <div className="text-sm text-foreground">{timeframe.label}</div>
+                        <div className="text-xs text-muted-foreground font-normal mt-0.5">{timeframe.start} - {timeframe.end}</div>
                       </td>
                       {weekDates.map((date, idx) => {
                     const staffInTimeframe = getStaffForTimeframe(timeframe, date);
                     const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
-                    return <td key={idx} className="border p-0">
-                            <div className={cn("p-3 h-full min-h-[120px]", coverageClass)}>
+                    return <td key={idx} className="border border-border/40 p-0 relative group/cell">
+                            <div className={cn(
+                              "p-4 h-full min-h-[140px] transition-all duration-300",
+                              "hover:shadow-lg hover:scale-[1.02] hover:z-10",
+                              coverageClass
+                            )}>
                               {staffInTimeframe.length > 0 ? <div className="space-y-2">
-                                  {staffInTimeframe.map(s => <div key={s.id} className="flex items-center gap-2 bg-background/50 rounded-md px-2 py-1.5">
-                                      <Avatar className="h-6 w-6" style={{
+                                  <div className="flex items-center justify-between mb-3">
+                                    <Badge variant="secondary" className="text-xs font-semibold px-2 py-0.5 bg-background/60 backdrop-blur-sm">
+                                      {staffInTimeframe.length} staff
+                                    </Badge>
+                                  </div>
+                                  {staffInTimeframe.map(s => <div 
+                                      key={s.id} 
+                                      className="flex items-center gap-2.5 bg-background/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                                    >
+                                      <Avatar className="h-7 w-7 ring-2 ring-background shadow-sm" style={{
                               backgroundColor: getStaffColor(s.colorIndex)
                             }}>
-                                        <AvatarFallback className="text-white text-[10px]">
+                                        <AvatarFallback className="text-white text-[10px] font-semibold">
                                           {getInitials(s.name)}
                                         </AvatarFallback>
                                       </Avatar>
-                                      <span className="text-xs font-medium truncate">{s.name}</span>
+                                      <span className="text-xs font-medium text-foreground truncate">{s.name}</span>
                                     </div>)}
-                                </div> : <div className="flex items-center justify-center h-full">
-                                  <Badge variant="secondary" className="gap-1">
-                                    <Users className="h-3 w-3" />
-                                    0
+                                </div> : <div className="flex flex-col items-center justify-center h-full">
+                                  <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
+                                    <Users className="h-3.5 w-3.5" />
+                                    No coverage
                                   </Badge>
                                 </div>}
                             </div>
