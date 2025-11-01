@@ -106,7 +106,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
           </div>
 
           {(shiftType === "regular" || shiftType === "flexible") && (
-            <>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="start">Start Time</Label>
                 <Input
@@ -126,7 +126,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
                   onChange={(e) => setEndTime(e.target.value)}
                 />
               </div>
-            </>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
