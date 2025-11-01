@@ -9,6 +9,9 @@ export interface Staff {
   joinedDate: string;
   education?: string;
   avatarUrl?: string;
+  phone?: string;
+  email?: string;
+  position?: string;
 }
 
 export type ShiftType = "regular" | "flexible" | "leave" | "week-off";

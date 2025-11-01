@@ -25,6 +25,9 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
   const [education, setEducation] = useState(employee.education || "");
   const [hourlyRate, setHourlyRate] = useState(employee.hourlyRate.toString());
   const [employmentType, setEmploymentType] = useState<"full-time" | "part-time">(employee.employmentType);
+  const [phone, setPhone] = useState(employee.phone || "");
+  const [email, setEmail] = useState(employee.email || "");
+  const [position, setPosition] = useState(employee.position || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(employee.avatarUrl || "");
   const [uploading, setUploading] = useState(false);
@@ -38,6 +41,9 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
     setEducation(employee.education || "");
     setHourlyRate(employee.hourlyRate.toString());
     setEmploymentType(employee.employmentType);
+    setPhone(employee.phone || "");
+    setEmail(employee.email || "");
+    setPosition(employee.position || "");
     setAvatarPreview(employee.avatarUrl || "");
     setAvatarFile(null);
   }, [employee, open]);
@@ -102,6 +108,9 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
           education: education || null,
           hourly_rate: parseFloat(hourlyRate),
           employment_type: employmentType,
+          phone: phone || null,
+          email: email || null,
+          position: position || null,
           avatar_url: avatarUrl
         })
         .eq("id", employee.id);
@@ -179,6 +188,16 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="position">Position</Label>
+              <Input
+                id="position"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                placeholder="e.g., Account Manager"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="employment-type">Employment Type *</Label>
               <Select value={employmentType} onValueChange={(value: "full-time" | "part-time") => setEmploymentType(value)}>
                 <SelectTrigger id="employment-type">
@@ -189,6 +208,39 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
                   <SelectItem value="part-time">Part-time</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rate">Hourly Rate ($) *</Label>
+              <Input
+                id="rate"
+                type="number"
+                step="0.01"
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g., +48 790 25 7765"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="e.g., employee@example.com"
+              />
             </div>
 
             <div className="space-y-2">
@@ -221,25 +273,14 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rate">Hourly Rate ($) *</Label>
+              <Label htmlFor="education">Education</Label>
               <Input
-                id="rate"
-                type="number"
-                step="0.01"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
+                id="education"
+                value={education}
+                onChange={(e) => setEducation(e.target.value)}
+                placeholder="e.g., Bachelor's in Business"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="education">Education</Label>
-            <Input
-              id="education"
-              value={education}
-              onChange={(e) => setEducation(e.target.value)}
-              placeholder="e.g., Bachelor's in Business"
-            />
           </div>
         </div>
 

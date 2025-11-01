@@ -58,7 +58,10 @@ export default function Employee() {
       dateOfBirth: s.date_of_birth,
       nationalId: s.national_id,
       education: s.education,
-      avatarUrl: s.avatar_url
+      avatarUrl: s.avatar_url,
+      phone: s.phone,
+      email: s.email,
+      position: s.position
     }));
 
     setStaff(staffData);
@@ -94,7 +97,10 @@ export default function Employee() {
       dateOfBirth: data.date_of_birth,
       nationalId: data.national_id,
       education: data.education,
-      avatarUrl: data.avatar_url
+      avatarUrl: data.avatar_url,
+      phone: data.phone,
+      email: data.email,
+      position: data.position
     };
 
     setStaff(prev => [...prev, staff]);
@@ -245,7 +251,7 @@ export default function Employee() {
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg leading-tight">{member.name}</h3>
-                        <p className="text-sm text-muted-foreground capitalize">{member.employmentType} employee</p>
+                        <p className="text-sm text-muted-foreground">{member.position || "Employee"}</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -253,17 +259,16 @@ export default function Employee() {
                     <div className="flex items-center gap-3 text-sm">
                       <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="text-muted-foreground">Phone</span>
-                      <span className="ml-auto text-primary">—</span>
+                      <span className="ml-auto text-primary text-right break-all">
+                        {member.phone || "—"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="text-muted-foreground">E-mail</span>
-                      <span className="ml-auto text-primary">—</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">Address</span>
-                      <span className="ml-auto text-primary">—</span>
+                      <span className="ml-auto text-primary text-right break-all">
+                        {member.email || "—"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Banknote className="h-4 w-4 text-muted-foreground flex-shrink-0" />

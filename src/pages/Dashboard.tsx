@@ -56,7 +56,10 @@ export default function Dashboard() {
         dateOfBirth: s.date_of_birth,
         nationalId: s.national_id,
         education: s.education,
-        avatarUrl: s.avatar_url
+        avatarUrl: s.avatar_url,
+        phone: s.phone,
+        email: s.email,
+        position: s.position
       })));
     }
     

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign, Pencil } from "lucide-react";
+import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign, Pencil, Phone, Mail, Briefcase as Position } from "lucide-react";
 import { toast } from "sonner";
 import { Staff } from "@/types/shift";
 import { getStaffColor } from "@/lib/timeUtils";
@@ -49,6 +49,9 @@ export default function EmployeeProfile() {
       joinedDate: data.joined_date,
       education: data.education,
       avatarUrl: data.avatar_url,
+      phone: data.phone,
+      email: data.email,
+      position: data.position,
     };
 
     setEmployee(employeeData);
@@ -126,6 +129,42 @@ export default function EmployeeProfile() {
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {employee.position && (
+              <div className="flex items-start gap-3">
+                <Position className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Position
+                  </p>
+                  <p className="text-base">{employee.position}</p>
+                </div>
+              </div>
+            )}
+
+            {employee.phone && (
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Phone
+                  </p>
+                  <p className="text-base">{employee.phone}</p>
+                </div>
+              </div>
+            )}
+
+            {employee.email && (
+              <div className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Email
+                  </p>
+                  <p className="text-base">{employee.email}</p>
+                </div>
+              </div>
+            )}
+
             {employee.dateOfBirth && (
               <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
