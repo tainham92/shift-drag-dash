@@ -299,15 +299,15 @@ export default function Coverage() {
                     const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
                     return <td key={idx} className="border border-border/40 p-0 relative group/cell">
                             <div className={cn(
-                              "p-2 min-h-[60px] transition-all duration-300 flex items-start",
+                              "p-2 transition-all duration-300",
                               "hover:shadow-lg hover:scale-[1.02] hover:z-10",
                               coverageClass,
-                              staffInTimeframe.length === 0 && "items-center justify-center"
+                              staffInTimeframe.length === 0 && "min-h-[60px] flex items-center justify-center"
                             )}>
-                              {staffInTimeframe.length > 0 ? <div className="flex flex-col gap-1 w-full">
+                              {staffInTimeframe.length > 0 ? <div className="flex flex-col">
                                   {staffInTimeframe.map(s => <div 
                                       key={s.id} 
-                                      className="flex items-center gap-2"
+                                      className="flex items-center gap-2 py-0.5"
                                     >
                                       <Avatar className="h-6 w-6" style={{
                               backgroundColor: getStaffColor(s.colorIndex)
