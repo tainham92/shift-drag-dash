@@ -296,43 +296,54 @@ export default function Shift() {
                   </AccordionTrigger>
                   <AccordionContent>
                     {groupedShifts[member.id]?.length > 0 ? (
-                      <div className="space-y-2 pt-2">
-                        {groupedShifts[member.id].map((shift) => (
-                          <div
-                            key={shift.id}
-                            className="flex items-center justify-between bg-secondary/50 rounded p-3"
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-medium capitalize">
-                                {shift.type}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {shift.day}
-                              </span>
-                              {shift.type === "regular" && (
-                                <span className="text-sm">
-                                  {shift.startTime} - {shift.endTime}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditShift(shift)}
+                      <div className="border rounded-md">
+                        <table className="w-full text-sm">
+                          <thead className="border-b bg-muted/50">
+                            <tr>
+                              <th className="text-left p-2 font-medium">Type</th>
+                              <th className="text-left p-2 font-medium">Date</th>
+                              <th className="text-left p-2 font-medium">Time</th>
+                              <th className="text-right p-2 font-medium">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupedShifts[member.id].map((shift, idx) => (
+                              <tr 
+                                key={shift.id} 
+                                className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}
                               >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteShift(shift.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                                <td className="p-2 capitalize">{shift.type}</td>
+                                <td className="p-2 text-muted-foreground">{shift.day}</td>
+                                <td className="p-2">
+                                  {shift.type === "regular" 
+                                    ? `${shift.startTime} - ${shift.endTime}`
+                                    : "-"
+                                  }
+                                </td>
+                                <td className="p-2 text-right">
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0"
+                                      onClick={() => handleEditShift(shift)}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0"
+                                      onClick={() => handleDeleteShift(shift.id)}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground pt-2">
