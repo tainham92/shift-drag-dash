@@ -269,28 +269,23 @@ export default function Coverage() {
                     const coverageClass = getCoverageIntensityColor(staffInTimeframe.length);
                     return <td key={idx} className="border border-border/40 p-0 relative group/cell">
                             <div className={cn(
-                              "p-4 h-full min-h-[140px] transition-all duration-300",
+                              "p-3 h-full min-h-[100px] transition-all duration-300",
                               "hover:shadow-lg hover:scale-[1.02] hover:z-10",
                               coverageClass
                             )}>
-                              {staffInTimeframe.length > 0 ? <div className="space-y-2">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <Badge variant="secondary" className="text-xs font-semibold px-2 py-0.5 bg-background/60 backdrop-blur-sm">
-                                      {staffInTimeframe.length} staff
-                                    </Badge>
-                                  </div>
+                              {staffInTimeframe.length > 0 ? <div className="space-y-1.5">
                                   {staffInTimeframe.map(s => <div 
                                       key={s.id} 
-                                      className="flex items-center gap-2.5 bg-background/70 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                                      className="flex items-center gap-2 px-1"
                                     >
-                                      <Avatar className="h-7 w-7 ring-2 ring-background shadow-sm" style={{
+                                      <Avatar className="h-6 w-6" style={{
                               backgroundColor: getStaffColor(s.colorIndex)
                             }}>
-                                        <AvatarFallback className="text-white text-[10px] font-semibold">
+                                        <AvatarFallback className="text-white text-[10px]">
                                           {getInitials(s.name)}
                                         </AvatarFallback>
                                       </Avatar>
-                                      <span className="text-xs font-medium text-foreground truncate">{s.name}</span>
+                                      <span className="text-xs text-foreground/90">{s.name}</span>
                                     </div>)}
                                 </div> : <div className="flex flex-col items-center justify-center h-full">
                                   <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur-sm border-red-300/50 text-red-700">
