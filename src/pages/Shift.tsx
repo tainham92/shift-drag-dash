@@ -3,16 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square, X } from "lucide-react";
+import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
 import type { Shift as ShiftType, Staff, ShiftType as ShiftTypeEnum } from "@/types/shift";
 import { Auth } from "@/components/Auth";
-import { getStaffColor, generateRecurringDates } from "@/lib/timeUtils";
+import { getStaffColor, generateRecurringDates, TIME_SLOTS } from "@/lib/timeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 export default function Shift() {
   const [user, setUser] = useState<any>(null);
@@ -25,6 +30,7 @@ export default function Shift() {
   const [selectedShifts, setSelectedShifts] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-asc");
+  const [editingField, setEditingField] = useState<{groupId: string, field: 'time' | 'startDate' | 'endDate'} | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -511,12 +517,80 @@ export default function Shift() {
                                     />
                                   </td>
                                   <td className="p-2">{group.type} shift</td>
-                                  <td className="p-2">
-                                    {group.type === "regular" || group.type === "flexible"
-                                      ? `${group.startTime} - ${group.endTime}`
-                                      : "-"
-                                    }
-                                  </td>
+                                   <td className="p-2">
+                                     {group.type === "regular" || group.type === "flexible" ? (
+                                       editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'time' ? (
+                                         <div className="flex items-center gap-2">
+                                           <Select
+                                             defaultValue={group.startTime}
+                                             onValueChange={async (newStartTime) => {
+                                               const { error } = await supabase
+                                                 .from("shifts")
+                                                 .update({ start_time: newStartTime })
+                                                 .in("id", group.shiftIds);
+                                               
+                                               if (!error) {
+                                                 fetchShifts();
+                                               }
+                                             }}
+                                           >
+                                             <SelectTrigger className="w-[100px] h-8">
+                                               <SelectValue />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                               {TIME_SLOTS.map((time) => (
+                                                 <SelectItem key={time} value={time}>
+                                                   {time}
+                                                 </SelectItem>
+                                               ))}
+                                             </SelectContent>
+                                           </Select>
+                                           <span>-</span>
+                                           <Select
+                                             defaultValue={group.endTime}
+                                             onValueChange={async (newEndTime) => {
+                                               const { error } = await supabase
+                                                 .from("shifts")
+                                                 .update({ end_time: newEndTime })
+                                                 .in("id", group.shiftIds);
+                                               
+                                               if (!error) {
+                                                 fetchShifts();
+                                               }
+                                             }}
+                                           >
+                                             <SelectTrigger className="w-[100px] h-8">
+                                               <SelectValue />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                               {TIME_SLOTS.map((time) => (
+                                                 <SelectItem key={time} value={time}>
+                                                   {time}
+                                                 </SelectItem>
+                                               ))}
+                                             </SelectContent>
+                                           </Select>
+                                           <Button
+                                             size="sm"
+                                             variant="ghost"
+                                             className="h-7 w-7 p-0"
+                                             onClick={() => setEditingField(null)}
+                                           >
+                                             <Check className="h-3.5 w-3.5" />
+                                           </Button>
+                                         </div>
+                                       ) : (
+                                         <button
+                                           onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'time' })}
+                                           className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                         >
+                                           {group.startTime} - {group.endTime}
+                                         </button>
+                                       )
+                                     ) : (
+                                       "-"
+                                     )}
+                                   </td>
                                    <td className="p-2">
                                      <div className="flex flex-wrap gap-1.5 items-center">
                                        {[...new Set(group.days.map(d => d.dayName))].map((dayName) => {
@@ -571,8 +645,120 @@ export default function Shift() {
                                        </Button>
                                      </div>
                                    </td>
-                                  <td className="p-2">{group.startDate}</td>
-                                  <td className="p-2">{group.endDate}</td>
+                                   <td className="p-2">
+                                     {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'startDate' ? (
+                                       <div className="flex items-center gap-2">
+                                         <Popover>
+                                           <PopoverTrigger asChild>
+                                             <Button variant="outline" size="sm" className="h-8 justify-start">
+                                               <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                                               {format(new Date(group.startDate), "PP")}
+                                             </Button>
+                                           </PopoverTrigger>
+                                           <PopoverContent className="w-auto p-0" align="start">
+                                             <Calendar
+                                               mode="single"
+                                               selected={new Date(group.startDate)}
+                                               onSelect={async (date) => {
+                                                 if (!date) return;
+                                                 const newDate = date.toISOString().split("T")[0];
+                                                 const oldDate = group.startDate;
+                                                 
+                                                 // Update all shifts with this start date
+                                                 const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
+                                                 const { error } = await supabase
+                                                   .from("shifts")
+                                                   .update({ day: newDate })
+                                                   .in("id", shiftsToUpdate.map(s => s.shiftId));
+                                                 
+                                                 if (!error) {
+                                                   toast.success("Start date updated");
+                                                   fetchShifts();
+                                                   setEditingField(null);
+                                                 } else {
+                                                   toast.error("Failed to update start date");
+                                                 }
+                                               }}
+                                               initialFocus
+                                               className="pointer-events-auto"
+                                             />
+                                           </PopoverContent>
+                                         </Popover>
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           className="h-7 w-7 p-0"
+                                           onClick={() => setEditingField(null)}
+                                         >
+                                           <Check className="h-3.5 w-3.5" />
+                                         </Button>
+                                       </div>
+                                     ) : (
+                                       <button
+                                         onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'startDate' })}
+                                         className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                       >
+                                         {group.startDate}
+                                       </button>
+                                     )}
+                                   </td>
+                                   <td className="p-2">
+                                     {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'endDate' ? (
+                                       <div className="flex items-center gap-2">
+                                         <Popover>
+                                           <PopoverTrigger asChild>
+                                             <Button variant="outline" size="sm" className="h-8 justify-start">
+                                               <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                                               {format(new Date(group.endDate), "PP")}
+                                             </Button>
+                                           </PopoverTrigger>
+                                           <PopoverContent className="w-auto p-0" align="start">
+                                             <Calendar
+                                               mode="single"
+                                               selected={new Date(group.endDate)}
+                                               onSelect={async (date) => {
+                                                 if (!date) return;
+                                                 const newDate = date.toISOString().split("T")[0];
+                                                 const oldDate = group.endDate;
+                                                 
+                                                 // Update all shifts with this end date
+                                                 const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
+                                                 const { error } = await supabase
+                                                   .from("shifts")
+                                                   .update({ day: newDate })
+                                                   .in("id", shiftsToUpdate.map(s => s.shiftId));
+                                                 
+                                                 if (!error) {
+                                                   toast.success("End date updated");
+                                                   fetchShifts();
+                                                   setEditingField(null);
+                                                 } else {
+                                                   toast.error("Failed to update end date");
+                                                 }
+                                               }}
+                                               initialFocus
+                                               className="pointer-events-auto"
+                                             />
+                                           </PopoverContent>
+                                         </Popover>
+                                         <Button
+                                           size="sm"
+                                           variant="ghost"
+                                           className="h-7 w-7 p-0"
+                                           onClick={() => setEditingField(null)}
+                                         >
+                                           <Check className="h-3.5 w-3.5" />
+                                         </Button>
+                                       </div>
+                                     ) : (
+                                       <button
+                                         onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'endDate' })}
+                                         className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                       >
+                                         {group.endDate}
+                                       </button>
+                                     )}
+                                   </td>
                                   <td className="p-2 text-right">
                                     <div className="flex items-center gap-1 justify-end">
                                       <Button
