@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
@@ -626,23 +628,79 @@ export default function Shift() {
                                            </Badge>
                                          );
                                        })}
-                                       <Button
-                                         variant="ghost"
-                                         size="sm"
-                                         className="h-6 w-6 p-0 rounded-full"
-                                         onClick={async (e) => {
-                                           e.stopPropagation();
-                                           // For now, let's just open the shift dialog to add more days
-                                           const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
-                                           if (firstShift) {
-                                             setSelectedStaffId(firstShift.staffId);
-                                             setEditingShift(null);
-                                             setShiftDialogOpen(true);
-                                           }
-                                         }}
-                                       >
-                                         <Plus className="h-3.5 w-3.5" />
-                                       </Button>
+                                       {(() => {
+                                         const allDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                                         const existingDays = [...new Set(group.days.map(d => d.dayName))];
+                                         const remainingDays = allDays.filter(day => !existingDays.includes(day));
+                                         
+                                         if (remainingDays.length === 0) return null;
+                                         
+                                         return (
+                                           <DropdownMenu>
+                                             <DropdownMenuTrigger asChild>
+                                               <Button
+                                                 variant="ghost"
+                                                 size="sm"
+                                                 className="h-6 w-6 p-0 rounded-full"
+                                                 onClick={(e) => e.stopPropagation()}
+                                               >
+                                                 <Plus className="h-3.5 w-3.5" />
+                                               </Button>
+                                             </DropdownMenuTrigger>
+                                             <DropdownMenuContent className="z-50 bg-popover" align="start">
+                                               {remainingDays.map((dayName) => (
+                                                 <DropdownMenuItem
+                                                   key={dayName}
+                                                   onClick={async (e) => {
+                                                     e.stopPropagation();
+                                                     const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
+                                                     if (!firstShift || !user) return;
+                                                     
+                                                     // Find a date that matches this day name within the group's date range
+                                                     const startDate = new Date(group.startDate);
+                                                     const endDate = new Date(group.endDate);
+                                                     const dates = [];
+                                                     
+                                                     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                                                       const currentDayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                                       if (currentDayName === dayName) {
+                                                         dates.push(new Date(d).toISOString().split("T")[0]);
+                                                       }
+                                                     }
+                                                     
+                                                     if (dates.length === 0) {
+                                                       toast.error("No dates found for this day in the current range");
+                                                       return;
+                                                     }
+                                                     
+                                                     const shiftsToInsert = dates.map(date => ({
+                                                       user_id: user.id,
+                                                       staff_id: firstShift.staffId,
+                                                       type: group.type,
+                                                       start_time: group.startTime,
+                                                       end_time: group.endTime,
+                                                       day: date,
+                                                     }));
+                                                     
+                                                     const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+                                                     
+                                                     if (error) {
+                                                       toast.error("Failed to add day");
+                                                       return;
+                                                     }
+                                                     
+                                                     toast.success(`Added ${dayName}`);
+                                                     fetchShifts();
+                                                   }}
+                                                   className="capitalize cursor-pointer"
+                                                 >
+                                                   {dayName}
+                                                 </DropdownMenuItem>
+                                               ))}
+                                             </DropdownMenuContent>
+                                           </DropdownMenu>
+                                         );
+                                       })()}
                                      </div>
                                    </td>
                                    <td className="p-2">
