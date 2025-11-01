@@ -241,8 +241,38 @@ export default function Coverage() {
         {/* Week Coverage Grid */}
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Coverage Grid</CardTitle>
-            <CardDescription>Staff working in each timeframe throughout the week</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Weekly Coverage Grid</CardTitle>
+                <CardDescription>Staff working in each timeframe throughout the week</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={setPreviousWeek}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={setThisWeek}
+                  className="h-8 px-3 text-xs"
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={setNextWeek}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
