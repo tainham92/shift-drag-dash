@@ -179,22 +179,16 @@ export default function Coverage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Staff Coverage Timeline</h1>
-            <p className="text-sm text-muted-foreground">View staff coverage by hour</p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-[1800px] mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Staff Coverage Timeline</h1>
+          <Button onClick={handleLogout} variant="ghost">
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-4 space-y-4">
         {/* Week Selection and Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
           <Card className="lg:col-span-1">
