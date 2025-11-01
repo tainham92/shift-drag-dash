@@ -430,53 +430,62 @@ export default function Shift() {
                                 />
                               </th>
                               <th className="text-left p-2 font-medium">Type</th>
-                              <th className="text-left p-2 font-medium">Date</th>
-                              <th className="text-left p-2 font-medium">Time</th>
+                              <th className="text-left p-2 font-medium">time</th>
+                              <th className="text-left p-2 font-medium">days</th>
+                              <th className="text-left p-2 font-medium">start date</th>
+                              <th className="text-left p-2 font-medium">end date</th>
                               <th className="text-right p-2 font-medium">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {filterAndSortShifts(groupedShifts[member.id]).map((shift, idx) => (
-                              <tr 
-                                key={shift.id} 
-                                className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}
-                              >
-                                <td className="p-2">
-                                  <Checkbox
-                                    checked={selectedShifts.has(shift.id)}
-                                    onCheckedChange={() => handleSelectShift(shift.id)}
-                                  />
-                                </td>
-                                <td className="p-2 capitalize">{shift.type}</td>
-                                <td className="p-2 text-muted-foreground">{shift.day}</td>
-                                <td className="p-2">
-                                  {shift.type === "regular" 
-                                    ? `${shift.startTime} - ${shift.endTime}`
-                                    : "-"
-                                  }
-                                </td>
-                                <td className="p-2 text-right">
-                                  <div className="flex items-center gap-1 justify-end">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 w-7 p-0"
-                                      onClick={() => handleEditShift(shift)}
-                                    >
-                                      <Pencil className="h-3.5 w-3.5" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 w-7 p-0"
-                                      onClick={() => handleDeleteShift(shift.id)}
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                            {filterAndSortShifts(groupedShifts[member.id]).map((shift, idx) => {
+                              const date = new Date(shift.day);
+                              const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                              
+                              return (
+                                <tr 
+                                  key={shift.id} 
+                                  className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}
+                                >
+                                  <td className="p-2">
+                                    <Checkbox
+                                      checked={selectedShifts.has(shift.id)}
+                                      onCheckedChange={() => handleSelectShift(shift.id)}
+                                    />
+                                  </td>
+                                  <td className="p-2">{shift.type} shift</td>
+                                  <td className="p-2">
+                                    {shift.type === "regular" || shift.type === "flexible"
+                                      ? `${shift.startTime} - ${shift.endTime}`
+                                      : "-"
+                                    }
+                                  </td>
+                                  <td className="p-2">{dayName}</td>
+                                  <td className="p-2">{shift.day}</td>
+                                  <td className="p-2">{shift.day}</td>
+                                  <td className="p-2 text-right">
+                                    <div className="flex items-center gap-1 justify-end">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => handleEditShift(shift)}
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => handleDeleteShift(shift.id)}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
