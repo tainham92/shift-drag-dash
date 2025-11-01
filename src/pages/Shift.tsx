@@ -290,6 +290,54 @@ export default function Shift() {
     fetchShifts();
   };
 
+  const groupShiftsByTime = (staffShifts: ShiftType[]) => {
+    const groups: Array<{
+      type: ShiftTypeEnum;
+      startTime: string;
+      endTime: string;
+      days: Array<{ day: string; dayName: string; shiftId: string }>;
+      startDate: string;
+      endDate: string;
+      shiftIds: string[];
+    }> = [];
+
+    staffShifts.forEach(shift => {
+      const date = new Date(shift.day);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      
+      const existingGroup = groups.find(
+        g => g.type === shift.type && 
+             g.startTime === shift.startTime && 
+             g.endTime === shift.endTime
+      );
+
+      if (existingGroup) {
+        existingGroup.days.push({ day: shift.day, dayName, shiftId: shift.id });
+        existingGroup.shiftIds.push(shift.id);
+        // Update date range
+        if (shift.day < existingGroup.startDate) existingGroup.startDate = shift.day;
+        if (shift.day > existingGroup.endDate) existingGroup.endDate = shift.day;
+      } else {
+        groups.push({
+          type: shift.type,
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          days: [{ day: shift.day, dayName, shiftId: shift.id }],
+          startDate: shift.day,
+          endDate: shift.day,
+          shiftIds: [shift.id]
+        });
+      }
+    });
+
+    // Sort days within each group
+    groups.forEach(group => {
+      group.days.sort((a, b) => a.day.localeCompare(b.day));
+    });
+
+    return groups;
+  };
+
   const filterAndSortShifts = (staffShifts: ShiftType[]) => {
     let filtered = staffShifts;
 
@@ -438,38 +486,49 @@ export default function Shift() {
                             </tr>
                           </thead>
                           <tbody>
-                            {filterAndSortShifts(groupedShifts[member.id]).map((shift, idx) => {
-                              const date = new Date(shift.day);
-                              const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                            {groupShiftsByTime(filterAndSortShifts(groupedShifts[member.id])).map((group, idx) => {
+                              const allSelected = group.shiftIds.every(id => selectedShifts.has(id));
+                              const uniqueDayNames = [...new Set(group.days.map(d => d.dayName))].join(', ');
                               
                               return (
                                 <tr 
-                                  key={shift.id} 
+                                  key={group.shiftIds.join('-')} 
                                   className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}
                                 >
                                   <td className="p-2">
                                     <Checkbox
-                                      checked={selectedShifts.has(shift.id)}
-                                      onCheckedChange={() => handleSelectShift(shift.id)}
+                                      checked={allSelected}
+                                      onCheckedChange={() => {
+                                        const newSelected = new Set(selectedShifts);
+                                        if (allSelected) {
+                                          group.shiftIds.forEach(id => newSelected.delete(id));
+                                        } else {
+                                          group.shiftIds.forEach(id => newSelected.add(id));
+                                        }
+                                        setSelectedShifts(newSelected);
+                                      }}
                                     />
                                   </td>
-                                  <td className="p-2">{shift.type} shift</td>
+                                  <td className="p-2">{group.type} shift</td>
                                   <td className="p-2">
-                                    {shift.type === "regular" || shift.type === "flexible"
-                                      ? `${shift.startTime} - ${shift.endTime}`
+                                    {group.type === "regular" || group.type === "flexible"
+                                      ? `${group.startTime} - ${group.endTime}`
                                       : "-"
                                     }
                                   </td>
-                                  <td className="p-2">{dayName}</td>
-                                  <td className="p-2">{shift.day}</td>
-                                  <td className="p-2">{shift.day}</td>
+                                  <td className="p-2">{uniqueDayNames}</td>
+                                  <td className="p-2">{group.startDate}</td>
+                                  <td className="p-2">{group.endDate}</td>
                                   <td className="p-2 text-right">
                                     <div className="flex items-center gap-1 justify-end">
                                       <Button
                                         variant="ghost"
                                         size="sm"
                                         className="h-7 w-7 p-0"
-                                        onClick={() => handleEditShift(shift)}
+                                        onClick={() => {
+                                          const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
+                                          if (firstShift) handleEditShift(firstShift);
+                                        }}
                                       >
                                         <Pencil className="h-3.5 w-3.5" />
                                       </Button>
@@ -477,7 +536,20 @@ export default function Shift() {
                                         variant="ghost"
                                         size="sm"
                                         className="h-7 w-7 p-0"
-                                        onClick={() => handleDeleteShift(shift.id)}
+                                        onClick={async () => {
+                                          const { error } = await supabase
+                                            .from("shifts")
+                                            .delete()
+                                            .in("id", group.shiftIds);
+                                          
+                                          if (error) {
+                                            toast.error("Failed to delete shifts");
+                                            return;
+                                          }
+                                          
+                                          toast.success(`Deleted ${group.shiftIds.length} shift(s)`);
+                                          fetchShifts();
+                                        }}
                                       >
                                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                       </Button>
