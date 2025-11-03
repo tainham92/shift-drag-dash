@@ -379,7 +379,15 @@ export default function Employee() {
                       </Badge>
                     </div>
                     {member.team && (
-                      <Badge variant="secondary" className="mb-3 w-fit">
+                      <Badge 
+                        variant="secondary" 
+                        className="mb-3 w-fit"
+                        style={{
+                          backgroundColor: member.team === "Đội hình chính" ? "#FFB3BA" : "#FFF9C4",
+                          color: member.team === "Đội hình chính" ? "#8B1E3F" : "#9D6B00",
+                          borderColor: member.team === "Đội hình chính" ? "#FFB3BA" : "#FFF9C4"
+                        }}
+                      >
                         {member.team}
                       </Badge>
                     )}
