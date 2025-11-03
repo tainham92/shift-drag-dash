@@ -225,12 +225,12 @@ export default function Employee() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Employees
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <p className="text-3xl font-bold text-primary">{filteredStaff.length}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {filteredStaff.filter(s => s.isActive ?? true).length} Active
@@ -239,12 +239,12 @@ export default function Employee() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Employment Type
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <p className="text-3xl font-bold text-accent">
                 {filteredStaff.filter(s => s.employmentType === "full-time").length} Full-time
               </p>
@@ -255,12 +255,12 @@ export default function Employee() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Teams
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <p className="text-3xl font-bold text-primary">{uniqueTeams.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Active teams</p>
             </CardContent>
