@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Staff, Shift } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { calculateHours, getStaffColor } from "@/lib/timeUtils";
 
 export default function Dashboard() {
@@ -10,6 +12,7 @@ export default function Dashboard() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     checkAuth();
@@ -79,8 +82,15 @@ export default function Dashboard() {
     }
   };
 
+  // Filter shifts for the selected month
+  const selectedMonthShifts = shifts.filter((shift) => {
+    const shiftDate = new Date(shift.day);
+    return shiftDate.getMonth() === selectedDate.getMonth() && 
+           shiftDate.getFullYear() === selectedDate.getFullYear();
+  });
+
   const staffHours = staff.map((member) => {
-    const memberShifts = shifts.filter(
+    const memberShifts = selectedMonthShifts.filter(
       (shift) => shift.staffId === member.id && (shift.type === "regular" || shift.type === "flexible")
     );
     const totalHours = memberShifts.reduce((sum, shift) => {
@@ -102,7 +112,15 @@ export default function Dashboard() {
 
   const totalSalary = staffHours.reduce((sum, s) => sum + s.salary, 0);
   const totalHours = staffHours.reduce((sum, s) => sum + s.totalHours, 0);
-  const currentMonth = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const currentMonth = selectedDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const handlePreviousMonth = () => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
+  };
 
   if (loading) {
     return (
@@ -115,11 +133,32 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Monthly Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            View hours worked and calculate salaries
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Monthly Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              View hours worked and calculate salaries
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePreviousMonth}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-[200px] text-center">
+              <p className="text-lg font-semibold">{currentMonth}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextMonth}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Summary Statistics */}
