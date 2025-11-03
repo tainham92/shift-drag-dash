@@ -235,7 +235,14 @@ export default function Employee() {
                       <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
                         Active
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge 
+                        variant="outline" 
+                        style={{
+                          backgroundColor: member.employmentType === "full-time" ? "#7B8FA1" : "#E5D4C1",
+                          color: member.employmentType === "full-time" ? "#fff" : "#6B5D4F",
+                          borderColor: member.employmentType === "full-time" ? "#7B8FA1" : "#E5D4C1"
+                        }}
+                      >
                         {member.employmentType === "full-time" ? "Full-time" : "Part-time"}
                       </Badge>
                     </div>
