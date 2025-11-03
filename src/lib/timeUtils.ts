@@ -28,7 +28,9 @@ export function getWeekRange(startDate: Date) {
 }
 
 export function getDayOfWeek(date: Date) {
-  return DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1];
+  // Use local time to stay consistent with display
+  const localDay = date.getDay();
+  return DAYS[localDay === 0 ? 6 : localDay - 1];
 }
 
 export function calculateHours(startTime: string, endTime: string): number {
@@ -72,12 +74,21 @@ export function generateRecurringDates(
   selectedDays: string[]
 ): string[] {
   const dates: string[] = [];
-  const current = new Date(startDate);
+  // Create dates in local timezone to avoid shifts
+  const current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
   
-  while (current <= endDate) {
-    const dayOfWeek = getDayOfWeek(current);
+  while (current <= end) {
+    // Get day of week using local time
+    const localDay = current.getDay();
+    const dayOfWeek = DAYS[localDay === 0 ? 6 : localDay - 1];
+    
     if (selectedDays.includes(dayOfWeek)) {
-      dates.push(current.toISOString().split("T")[0]);
+      // Format as YYYY-MM-DD using local date components
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, '0');
+      const day = String(current.getDate()).padStart(2, '0');
+      dates.push(`${year}-${month}-${day}`);
     }
     current.setDate(current.getDate() + 1);
   }
