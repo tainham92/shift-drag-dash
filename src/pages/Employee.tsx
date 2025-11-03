@@ -4,13 +4,20 @@ import { Staff } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Trash2, LogOut, Phone, Mail, MapPin, Banknote } from "lucide-react";
+import { UserPlus, Trash2, LogOut, Phone, Mail, MapPin, Banknote, Filter } from "lucide-react";
 import { StaffDialog } from "@/components/StaffDialog";
 import { getStaffColor } from "@/lib/timeUtils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Auth } from "@/components/Auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Employee() {
   const navigate = useNavigate();
@@ -18,6 +25,12 @@ export default function Employee() {
   const [loading, setLoading] = useState(true);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [staffDialogOpen, setStaffDialogOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Filter states
+  const [teamFilter, setTeamFilter] = useState<string>("all");
+  const [employmentFilter, setEmploymentFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,8 +48,22 @@ export default function Employee() {
   useEffect(() => {
     if (user) {
       fetchStaff();
+      checkAdminRole();
     }
   }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!error && data) {
+      setIsAdmin(data.role === "admin");
+    }
+  };
 
   const fetchStaff = async () => {
     const { data, error } = await supabase
@@ -64,11 +91,28 @@ export default function Employee() {
       phone: s.phone,
       email: s.email,
       position: s.position,
-      displayOrder: s.display_order
+      displayOrder: s.display_order,
+      team: s.team,
+      isActive: s.is_active ?? true
     }));
 
     setStaff(staffData);
   };
+
+  // Get unique teams for filter
+  const uniqueTeams = Array.from(new Set(staff.map(s => s.team).filter(Boolean))) as string[];
+
+  // Filter staff based on selected filters
+  const filteredStaff = staff.filter(member => {
+    if (teamFilter !== "all" && member.team !== teamFilter) return false;
+    if (employmentFilter !== "all" && member.employmentType !== employmentFilter) return false;
+    if (statusFilter !== "all") {
+      const isActive = member.isActive ?? true;
+      if (statusFilter === "active" && !isActive) return false;
+      if (statusFilter === "inactive" && isActive) return false;
+    }
+    return true;
+  });
 
   const handleAddStaff = async (newStaff: Omit<Staff, "id">) => {
     if (!user) return;
@@ -187,53 +231,141 @@ export default function Employee() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">{staff.length}</p>
+              <p className="text-3xl font-bold text-primary">{filteredStaff.length}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {filteredStaff.filter(s => s.isActive ?? true).length} Active
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Statistics
+                Employment Type
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-accent">
-                {staff.filter(s => s.employmentType === "full-time").length} Full-time
+                {filteredStaff.filter(s => s.employmentType === "full-time").length} Full-time
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {staff.filter(s => s.employmentType === "part-time").length} Part-time
+                {filteredStaff.filter(s => s.employmentType === "part-time").length} Part-time
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Teams
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">{uniqueTeams.length}</p>
+              <p className="text-xs text-muted-foreground mt-1">Active teams</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Filters - Only visible to admins */}
+        {isAdmin && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filters:</span>
+                </div>
+
+                <Select value={teamFilter} onValueChange={setTeamFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="All Teams" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="all">All Teams</SelectItem>
+                    {uniqueTeams.map(team => (
+                      <SelectItem key={team} value={team}>{team}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={employmentFilter} onValueChange={setEmploymentFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Employment Type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="full-time">Full-time</SelectItem>
+                    <SelectItem value="part-time">Part-time</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {(teamFilter !== "all" || employmentFilter !== "all" || statusFilter !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setTeamFilter("all");
+                      setEmploymentFilter("all");
+                      setStatusFilter("all");
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Staff Grid */}
-        {staff.length === 0 ? (
+        {filteredStaff.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">No employees added yet.</p>
-              <Button
-                onClick={() => setStaffDialogOpen(true)}
-                variant="outline"
-                className="mt-4"
-              >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Your First Employee
-              </Button>
+              <p className="text-muted-foreground">
+                {staff.length === 0 ? "No employees added yet." : "No employees match the selected filters."}
+              </p>
+              {staff.length === 0 && (
+                <Button
+                  onClick={() => setStaffDialogOpen(true)}
+                  variant="outline"
+                  className="mt-4"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Your First Employee
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {staff.map((member) => {
+            {filteredStaff.map((member) => {
               const color = getStaffColor(member.colorIndex);
+              const isActive = member.isActive ?? true;
               
               return (
                 <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
-                      <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
-                        Active
+                      <Badge 
+                        variant="default" 
+                        className={isActive 
+                          ? "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                          : "bg-gray-500/10 text-gray-600 hover:bg-gray-500/20 border-gray-500/20"
+                        }
+                      >
+                        {isActive ? "Active" : "Inactive"}
                       </Badge>
                       <Badge 
                         variant="outline" 
@@ -246,6 +378,11 @@ export default function Employee() {
                         {member.employmentType === "full-time" ? "Full-time" : "Part-time"}
                       </Badge>
                     </div>
+                    {member.team && (
+                      <Badge variant="secondary" className="mb-3 w-fit">
+                        {member.team}
+                      </Badge>
+                    )}
                     <div className="flex items-center gap-3">
                       {member.avatarUrl ? (
                         <img 

@@ -119,7 +119,9 @@ export default function Schedule() {
       phone: s.phone,
       email: s.email,
       position: s.position,
-      displayOrder: s.display_order
+      displayOrder: s.display_order,
+      team: s.team,
+      isActive: s.is_active ?? true
     }));
     setStaff(staffData);
   };

@@ -70,12 +70,14 @@ export type Database = {
           employment_type: string
           hourly_rate: number | null
           id: string
+          is_active: boolean
           joined_date: string
           monthly_salary: number | null
           name: string
           national_id: string | null
           phone: string | null
           position: string | null
+          team: string | null
           updated_at: string
           user_id: string
         }
@@ -90,12 +92,14 @@ export type Database = {
           employment_type?: string
           hourly_rate?: number | null
           id?: string
+          is_active?: boolean
           joined_date?: string
           monthly_salary?: number | null
           name: string
           national_id?: string | null
           phone?: string | null
           position?: string | null
+          team?: string | null
           updated_at?: string
           user_id: string
         }
@@ -110,12 +114,14 @@ export type Database = {
           employment_type?: string
           hourly_rate?: number | null
           id?: string
+          is_active?: boolean
           joined_date?: string
           monthly_salary?: number | null
           name?: string
           national_id?: string | null
           phone?: string | null
           position?: string | null
+          team?: string | null
           updated_at?: string
           user_id?: string
         }

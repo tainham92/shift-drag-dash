@@ -86,7 +86,9 @@ export default function Coverage() {
         phone: s.phone,
         email: s.email,
         position: s.position,
-        displayOrder: s.display_order
+        displayOrder: s.display_order,
+        team: s.team,
+        isActive: s.is_active ?? true
       })));
     }
     if (shiftsData.data) {

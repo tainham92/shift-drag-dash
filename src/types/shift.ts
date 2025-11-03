@@ -14,6 +14,8 @@ export interface Staff {
   email?: string;
   position?: string;
   displayOrder?: number;
+  team?: string;
+  isActive?: boolean;
 }
 
 export type ShiftType = "regular" | "flexible" | "leave" | "week-off";
