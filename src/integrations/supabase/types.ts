@@ -64,6 +64,7 @@ export type Database = {
           color_index: number
           created_at: string
           date_of_birth: string | null
+          display_order: number
           education: string | null
           email: string | null
           employment_type: string
@@ -83,6 +84,7 @@ export type Database = {
           color_index: number
           created_at?: string
           date_of_birth?: string | null
+          display_order?: number
           education?: string | null
           email?: string | null
           employment_type?: string
@@ -102,6 +104,7 @@ export type Database = {
           color_index?: number
           created_at?: string
           date_of_birth?: string | null
+          display_order?: number
           education?: string | null
           email?: string | null
           employment_type?: string

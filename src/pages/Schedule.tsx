@@ -97,7 +97,7 @@ export default function Schedule() {
     const {
       data,
       error
-    } = await supabase.from("staff").select("*").order("created_at", {
+    } = await supabase.from("staff").select("*").order("display_order", {
       ascending: true
     });
     if (error) {
@@ -109,6 +109,7 @@ export default function Schedule() {
       name: s.name,
       colorIndex: s.color_index,
       hourlyRate: s.hourly_rate,
+      monthlySalary: s.monthly_salary,
       employmentType: s.employment_type as "full-time" | "part-time",
       joinedDate: s.joined_date,
       dateOfBirth: s.date_of_birth,
@@ -117,9 +118,32 @@ export default function Schedule() {
       avatarUrl: s.avatar_url,
       phone: s.phone,
       email: s.email,
-      position: s.position
+      position: s.position,
+      displayOrder: s.display_order
     }));
     setStaff(staffData);
+  };
+
+  const handleStaffReorder = async (reorderedStaff: Staff[]) => {
+    setStaff(reorderedStaff);
+    
+    // Update display_order in database
+    const updates = reorderedStaff.map((staff, index) => 
+      supabase
+        .from("staff")
+        .update({ display_order: index })
+        .eq("id", staff.id)
+    );
+    
+    const results = await Promise.all(updates);
+    const hasError = results.some(result => result.error);
+    
+    if (hasError) {
+      toast.error("Failed to save order");
+      fetchStaff(); // Revert to database state
+    } else {
+      toast.success("Order updated");
+    }
   };
   const handleAddShift = (staffId: string, date: Date) => {
     setSelectedStaffId(staffId);
@@ -306,7 +330,14 @@ export default function Schedule() {
 
             {/* Schedule Grid */}
             <Card className="overflow-hidden">
-              <ScheduleGrid shifts={shifts} staff={staff} weekStartDate={weekStartDate} onAddShift={handleAddShift} onShiftClick={handleShiftClick} />
+              <ScheduleGrid 
+                shifts={shifts} 
+                staff={staff} 
+                weekStartDate={weekStartDate} 
+                onAddShift={handleAddShift} 
+                onShiftClick={handleShiftClick}
+                onStaffReorder={handleStaffReorder}
+              />
             </Card>
           </> : <>
             {/* Month Navigation */}

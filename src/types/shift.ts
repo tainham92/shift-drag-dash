@@ -7,12 +7,13 @@ export interface Staff {
   employmentType: "full-time" | "part-time";
   dateOfBirth?: string;
   nationalId?: string;
-  joinedDate: string;
+  joinedDate?: string;
   education?: string;
   avatarUrl?: string;
   phone?: string;
   email?: string;
   position?: string;
+  displayOrder?: number;
 }
 
 export type ShiftType = "regular" | "flexible" | "leave" | "week-off";

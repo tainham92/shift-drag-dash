@@ -66,13 +66,17 @@ export default function Coverage() {
       }
     } = await supabase.auth.getUser();
     if (!user) return;
-    const [staffData, shiftsData] = await Promise.all([supabase.from("staff").select("*").eq("user_id", user.id), supabase.from("shifts").select("*").eq("user_id", user.id)]);
+    const [staffData, shiftsData] = await Promise.all([
+      supabase.from("staff").select("*").eq("user_id", user.id).order("display_order", { ascending: true }), 
+      supabase.from("shifts").select("*").eq("user_id", user.id)
+    ]);
     if (staffData.data) {
       setStaff(staffData.data.map(s => ({
         id: s.id,
         name: s.name,
         colorIndex: s.color_index,
         hourlyRate: s.hourly_rate,
+        monthlySalary: s.monthly_salary,
         employmentType: s.employment_type as "full-time" | "part-time",
         joinedDate: s.joined_date,
         dateOfBirth: s.date_of_birth,
@@ -81,7 +85,8 @@ export default function Coverage() {
         avatarUrl: s.avatar_url,
         phone: s.phone,
         email: s.email,
-        position: s.position
+        position: s.position,
+        displayOrder: s.display_order
       })));
     }
     if (shiftsData.data) {

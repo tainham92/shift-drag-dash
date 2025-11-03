@@ -42,7 +42,7 @@ export default function Employee() {
     const { data, error } = await supabase
       .from("staff")
       .select("*")
-      .order("created_at", { ascending: true });
+      .order("display_order", { ascending: true });
 
     if (error) {
       toast.error("Failed to load staff");
@@ -63,7 +63,8 @@ export default function Employee() {
       avatarUrl: s.avatar_url,
       phone: s.phone,
       email: s.email,
-      position: s.position
+      position: s.position,
+      displayOrder: s.display_order
     }));
 
     setStaff(staffData);

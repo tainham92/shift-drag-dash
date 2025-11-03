@@ -41,7 +41,7 @@ export default function Dashboard() {
     if (!user) return;
 
     const [staffData, shiftsData] = await Promise.all([
-      supabase.from("staff").select("*").eq("user_id", user.id),
+      supabase.from("staff").select("*").eq("user_id", user.id).order("display_order", { ascending: true }),
       supabase.from("shifts").select("*").eq("user_id", user.id),
     ]);
 
@@ -60,7 +60,8 @@ export default function Dashboard() {
         avatarUrl: s.avatar_url,
         phone: s.phone,
         email: s.email,
-        position: s.position
+        position: s.position,
+        displayOrder: s.display_order
       })));
     }
     
