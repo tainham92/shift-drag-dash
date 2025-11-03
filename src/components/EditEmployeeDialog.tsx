@@ -294,12 +294,15 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
 
             <div className="space-y-2">
               <Label htmlFor="team">Team/Department</Label>
-              <Input
-                id="team"
-                value={team}
-                onChange={(e) => setTeam(e.target.value)}
-                placeholder="e.g., Sales, Marketing, Operations"
-              />
+              <Select value={team} onValueChange={setTeam}>
+                <SelectTrigger id="team">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Đội hình chính">Đội hình chính</SelectItem>
+                  <SelectItem value="Dự bị">Dự bị</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
