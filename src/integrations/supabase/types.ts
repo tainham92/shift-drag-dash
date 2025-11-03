@@ -67,7 +67,7 @@ export type Database = {
           education: string | null
           email: string | null
           employment_type: string
-          hourly_rate: number
+          hourly_rate: number | null
           id: string
           joined_date: string
           monthly_salary: number | null
@@ -86,7 +86,7 @@ export type Database = {
           education?: string | null
           email?: string | null
           employment_type?: string
-          hourly_rate: number
+          hourly_rate?: number | null
           id?: string
           joined_date?: string
           monthly_salary?: number | null
@@ -105,7 +105,7 @@ export type Database = {
           education?: string | null
           email?: string | null
           employment_type?: string
-          hourly_rate?: number
+          hourly_rate?: number | null
           id?: string
           joined_date?: string
           monthly_salary?: number | null
