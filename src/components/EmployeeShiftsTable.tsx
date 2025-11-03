@@ -40,6 +40,52 @@ export const EmployeeShiftsTable = ({ shifts, onRefresh, onEditShift, onAddShift
     return grouped;
   };
 
+  const getDayShiftSummary = (dayShifts: ShiftType[]) => {
+    if (dayShifts.length === 0) return null;
+
+    // Group by shift type and time
+    const shiftGroups = dayShifts.reduce((acc, shift) => {
+      const key = `${shift.type}-${shift.startTime}-${shift.endTime}`;
+      if (!acc[key]) {
+        acc[key] = {
+          type: shift.type,
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          dates: []
+        };
+      }
+      acc[key].dates.push(shift.day);
+      return acc;
+    }, {} as Record<string, { type: ShiftTypeEnum; startTime: string; endTime: string; dates: string[] }>);
+
+    // Get earliest and latest dates
+    const allDates = dayShifts.map(s => s.day).sort();
+    const startDate = allDates[0];
+    const endDate = allDates[allDates.length - 1];
+
+    return {
+      groups: Object.values(shiftGroups),
+      startDate,
+      endDate,
+      allShiftIds: dayShifts.map(s => s.id)
+    };
+  };
+
+  const handleDeleteDayShifts = async (shiftIds: string[]) => {
+    const { error } = await supabase
+      .from("shifts")
+      .delete()
+      .in("id", shiftIds);
+
+    if (error) {
+      toast.error("Failed to delete shifts");
+      return;
+    }
+
+    toast.success("Shifts deleted");
+    onRefresh();
+  };
+
   const handleDeleteShift = async (shiftId: string) => {
     const { error } = await supabase
       .from("shifts")
@@ -100,12 +146,16 @@ export const EmployeeShiftsTable = ({ shifts, onRefresh, onEditShift, onAddShift
           <thead className="border-b bg-muted/50">
             <tr>
               <th className="text-left p-3 font-medium w-32">Day</th>
-              <th className="text-left p-3 font-medium">Shifts</th>
+              <th className="text-left p-3 font-medium">Shift</th>
+              <th className="text-left p-3 font-medium w-36">Start Date</th>
+              <th className="text-left p-3 font-medium w-36">End Date</th>
+              <th className="text-right p-3 font-medium w-20">Actions</th>
             </tr>
           </thead>
           <tbody>
             {WEEKDAYS.map((dayName, idx) => {
               const dayShifts = filterShifts(groupedShifts[dayName]);
+              const summary = getDayShiftSummary(dayShifts);
               
               return (
                 <tr 
@@ -114,51 +164,65 @@ export const EmployeeShiftsTable = ({ shifts, onRefresh, onEditShift, onAddShift
                 >
                   <td className="p-3 font-medium align-top">{dayName}</td>
                   <td className="p-3">
-                    {dayShifts.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {dayShifts.map(shift => {
-                          const date = new Date(shift.day);
-                          return (
-                            <div 
-                              key={shift.id}
-                              className="flex items-center gap-2 bg-muted/50 rounded-md px-3 py-2"
-                            >
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant={getShiftTypeBadgeVariant(shift.type)} className="text-xs">
-                                    {shift.type}
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(date, "MMM d")}
-                                  </span>
-                                </div>
-                                {(shift.type === "regular" || shift.type === "flexible") && (
-                                  <span className="text-sm">
-                                    {shift.startTime} - {shift.endTime}
-                                  </span>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleDeleteShift(shift.id)}
-                                className="ml-2 hover:bg-destructive/20 rounded-full p-1 transition-colors"
-                              >
-                                <X className="h-3.5 w-3.5 text-destructive" />
-                              </button>
-                            </div>
-                          );
-                        })}
+                    {summary ? (
+                      <div className="flex flex-col gap-2">
+                        {summary.groups.map((group, gIdx) => (
+                          <div key={gIdx} className="flex items-center gap-2">
+                            <Badge variant={getShiftTypeBadgeVariant(group.type)}>
+                              {group.type}
+                            </Badge>
+                            {(group.type === "regular" || group.type === "flexible") && (
+                              <span className="text-sm">
+                                {group.startTime} - {group.endTime}
+                              </span>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onAddShift}
-                        className="text-muted-foreground"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add shift
-                      </Button>
+                      <span className="text-muted-foreground text-sm">-</span>
                     )}
+                  </td>
+                  <td className="p-3">
+                    {summary ? (
+                      <span className="text-sm">
+                        {format(new Date(summary.startDate), "MMM d, yyyy")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {summary ? (
+                      <span className="text-sm">
+                        {format(new Date(summary.endDate), "MMM d, yyyy")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {summary ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteDayShifts(summary.allShiftIds)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={onAddShift}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
