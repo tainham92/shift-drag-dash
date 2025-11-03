@@ -421,6 +421,7 @@ export default function EmployeeProfile() {
             shifts={shifts} 
             onRefresh={fetchShifts}
             onEditShift={handleEditShift}
+            onAddShift={handleAddShift}
           />
         </CardContent>
       </Card>
