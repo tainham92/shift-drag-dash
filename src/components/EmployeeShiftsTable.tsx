@@ -173,7 +173,7 @@ export const EmployeeShiftsTable = ({ shifts, onRefresh, onEditShift, onAddShift
                                 {group.startTime} - {group.endTime}
                               </span>
                             )}
-                            <Badge variant={getShiftTypeBadgeVariant(group.type)} className="text-xs h-5 mt-0.5">
+                            <Badge variant={getShiftTypeBadgeVariant(group.type)} className="text-[10px] h-4 px-1.5 py-0">
                               {group.type}
                             </Badge>
                           </div>
