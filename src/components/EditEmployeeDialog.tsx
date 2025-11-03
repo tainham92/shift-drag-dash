@@ -23,7 +23,11 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
   const [nationalId, setNationalId] = useState(employee.nationalId || "");
   const [joinedDate, setJoinedDate] = useState(employee.joinedDate);
   const [education, setEducation] = useState(employee.education || "");
-  const [hourlyRate, setHourlyRate] = useState(employee.hourlyRate.toString());
+  const [rate, setRate] = useState(
+    employee.employmentType === "full-time" 
+      ? (employee.monthlySalary?.toString() || "")
+      : (employee.hourlyRate?.toString() || "")
+  );
   const [employmentType, setEmploymentType] = useState<"full-time" | "part-time">(employee.employmentType);
   const [phone, setPhone] = useState(employee.phone || "");
   const [email, setEmail] = useState(employee.email || "");
@@ -39,7 +43,11 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
     setNationalId(employee.nationalId || "");
     setJoinedDate(employee.joinedDate);
     setEducation(employee.education || "");
-    setHourlyRate(employee.hourlyRate.toString());
+    setRate(
+      employee.employmentType === "full-time"
+        ? (employee.monthlySalary?.toString() || "")
+        : (employee.hourlyRate?.toString() || "")
+    );
     setEmploymentType(employee.employmentType);
     setPhone(employee.phone || "");
     setEmail(employee.email || "");
@@ -84,8 +92,8 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
   };
 
   const handleSave = async () => {
-    if (!name || !hourlyRate) {
-      toast.error("Name and hourly rate are required");
+    if (!name || !rate) {
+      toast.error(`Name and ${employmentType === "full-time" ? "monthly salary" : "hourly rate"} are required`);
       return;
     }
 
@@ -98,21 +106,30 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
         avatarUrl = await uploadAvatar();
       }
 
+      const updateData: any = {
+        name,
+        date_of_birth: dateOfBirth || null,
+        national_id: nationalId || null,
+        joined_date: joinedDate,
+        education: education || null,
+        employment_type: employmentType,
+        phone: phone || null,
+        email: email || null,
+        position: position || null,
+        avatar_url: avatarUrl
+      };
+
+      if (employmentType === "full-time") {
+        updateData.monthly_salary = parseFloat(rate);
+        updateData.hourly_rate = null;
+      } else {
+        updateData.hourly_rate = parseFloat(rate);
+        updateData.monthly_salary = null;
+      }
+
       const { error } = await supabase
         .from("staff")
-        .update({
-          name,
-          date_of_birth: dateOfBirth || null,
-          national_id: nationalId || null,
-          joined_date: joinedDate,
-          education: education || null,
-          hourly_rate: parseFloat(hourlyRate),
-          employment_type: employmentType,
-          phone: phone || null,
-          email: email || null,
-          position: position || null,
-          avatar_url: avatarUrl
-        })
+        .update(updateData)
         .eq("id", employee.id);
 
       if (error) {
@@ -211,13 +228,16 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rate">Hourly Rate (VND) *</Label>
+              <Label htmlFor="rate">
+                {employmentType === "full-time" ? "Monthly Salary (VND) *" : "Hourly Rate (VND) *"}
+              </Label>
               <Input
                 id="rate"
                 type="number"
                 step="1000"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
+                value={rate}
+                onChange={(e) => setRate(e.target.value)}
+                placeholder={employmentType === "full-time" ? "10000000" : "150000"}
               />
             </div>
 

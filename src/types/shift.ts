@@ -2,7 +2,8 @@ export interface Staff {
   id: string;
   name: string;
   colorIndex: number;
-  hourlyRate: number;
+  hourlyRate?: number;
+  monthlySalary?: number;
   employmentType: "full-time" | "part-time";
   dateOfBirth?: string;
   nationalId?: string;

@@ -54,6 +54,7 @@ export default function Employee() {
       name: s.name,
       colorIndex: s.color_index,
       hourlyRate: s.hourly_rate,
+      monthlySalary: s.monthly_salary,
       employmentType: s.employment_type as "full-time" | "part-time",
       joinedDate: s.joined_date,
       dateOfBirth: s.date_of_birth,
@@ -71,15 +72,22 @@ export default function Employee() {
   const handleAddStaff = async (newStaff: Omit<Staff, "id">) => {
     if (!user) return;
 
+    const insertData: any = {
+      user_id: user.id,
+      name: newStaff.name,
+      color_index: newStaff.colorIndex,
+      employment_type: newStaff.employmentType
+    };
+
+    if (newStaff.employmentType === "full-time") {
+      insertData.monthly_salary = newStaff.monthlySalary;
+    } else {
+      insertData.hourly_rate = newStaff.hourlyRate;
+    }
+
     const { data, error } = await supabase
       .from("staff")
-      .insert({
-        user_id: user.id,
-        name: newStaff.name,
-        color_index: newStaff.colorIndex,
-        hourly_rate: newStaff.hourlyRate,
-        employment_type: newStaff.employmentType
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -93,6 +101,7 @@ export default function Employee() {
       name: data.name,
       colorIndex: data.color_index,
       hourlyRate: data.hourly_rate,
+      monthlySalary: data.monthly_salary,
       employmentType: data.employment_type as "full-time" | "part-time",
       joinedDate: data.joined_date,
       dateOfBirth: data.date_of_birth,
@@ -184,27 +193,15 @@ export default function Employee() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Average Hourly Rate
+                Statistics
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-accent">
-                ₫{staff.length > 0 
-                  ? (staff.reduce((sum, s) => sum + s.hourlyRate, 0) / staff.length).toLocaleString('vi-VN', { maximumFractionDigits: 0 })
-                  : "0"}
+                {staff.filter(s => s.employmentType === "full-time").length} Full-time
               </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Payroll (per hour)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                ₫{staff.reduce((sum, s) => sum + s.hourlyRate, 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
+              <p className="text-sm text-muted-foreground mt-1">
+                {staff.filter(s => s.employmentType === "part-time").length} Part-time
               </p>
             </CardContent>
           </Card>
@@ -278,9 +275,14 @@ export default function Employee() {
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Banknote className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">Hourly Rate</span>
+                      <span className="text-muted-foreground">
+                        {member.employmentType === "full-time" ? "Monthly Salary" : "Hourly Rate"}
+                      </span>
                       <span className="ml-auto text-primary font-semibold">
-                        ₫{member.hourlyRate.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr
+                        {member.employmentType === "full-time"
+                          ? `₫${(member.monthlySalary || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/mo`
+                          : `₫${(member.hourlyRate || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr`
+                        }
                       </span>
                     </div>
                   </CardContent>

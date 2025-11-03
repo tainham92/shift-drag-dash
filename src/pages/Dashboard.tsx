@@ -51,6 +51,7 @@ export default function Dashboard() {
         name: s.name,
         colorIndex: s.color_index,
         hourlyRate: s.hourly_rate,
+        monthlySalary: s.monthly_salary,
         employmentType: s.employment_type as "full-time" | "part-time",
         joinedDate: s.joined_date,
         dateOfBirth: s.date_of_birth,
@@ -82,7 +83,11 @@ export default function Dashboard() {
     const totalHours = memberShifts.reduce((sum, shift) => {
       return sum + calculateHours(shift.startTime, shift.endTime);
     }, 0);
-    const salary = totalHours * member.hourlyRate;
+    
+    // Calculate salary based on employment type
+    const salary = member.employmentType === "full-time" 
+      ? (member.monthlySalary || 0)
+      : totalHours * (member.hourlyRate || 0);
 
     return {
       ...member,
@@ -170,7 +175,10 @@ export default function Dashboard() {
                       <div>
                         <p className="font-semibold text-sm">{member.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          ₫{member.hourlyRate.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr · {member.shiftCount} shifts
+                          {member.employmentType === "full-time" 
+                            ? `₫${(member.monthlySalary || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/mo`
+                            : `₫${(member.hourlyRate || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr`
+                          } · {member.shiftCount} shifts
                         </p>
                       </div>
                     </div>

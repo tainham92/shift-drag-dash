@@ -66,6 +66,7 @@ export default function EmployeeProfile() {
       name: data.name,
       colorIndex: data.color_index,
       hourlyRate: data.hourly_rate,
+      monthlySalary: data.monthly_salary,
       employmentType: data.employment_type as "full-time" | "part-time",
       dateOfBirth: data.date_of_birth,
       nationalId: data.national_id,
@@ -396,9 +397,14 @@ export default function EmployeeProfile() {
               <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Hourly Rate
+                  {employee.employmentType === "full-time" ? "Monthly Salary" : "Hourly Rate"}
                 </p>
-                <p className="text-base">${employee.hourlyRate.toFixed(2)}/hour</p>
+                <p className="text-base">
+                  {employee.employmentType === "full-time"
+                    ? `₫${(employee.monthlySalary || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/month`
+                    : `₫${(employee.hourlyRate || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hour`
+                  }
+                </p>
               </div>
             </div>
           </CardContent>

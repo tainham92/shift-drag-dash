@@ -32,23 +32,30 @@ const staffColors = [
 
 export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) => {
   const [name, setName] = useState("");
-  const [hourlyRate, setHourlyRate] = useState("");
+  const [rate, setRate] = useState("");
   const [colorIndex, setColorIndex] = useState(0);
   const [employmentType, setEmploymentType] = useState<"full-time" | "part-time">("full-time");
 
   const handleSave = () => {
-    if (!name || !hourlyRate) return;
+    if (!name || !rate) return;
 
-    onSave({
+    const staffData: Omit<Staff, "id"> = {
       name,
-      hourlyRate: parseFloat(hourlyRate),
       colorIndex,
       employmentType,
       joinedDate: new Date().toISOString().split('T')[0]
-    });
+    };
+
+    if (employmentType === "full-time") {
+      staffData.monthlySalary = parseFloat(rate);
+    } else {
+      staffData.hourlyRate = parseFloat(rate);
+    }
+
+    onSave(staffData);
 
     setName("");
-    setHourlyRate("");
+    setRate("");
     setColorIndex(0);
     setEmploymentType("full-time");
     onOpenChange(false);
@@ -83,14 +90,16 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rate">Hourly Rate (VND)</Label>
+            <Label htmlFor="rate">
+              {employmentType === "full-time" ? "Monthly Salary (VND)" : "Hourly Rate (VND)"}
+            </Label>
             <Input
               id="rate"
               type="number"
               step="1000"
-              placeholder="150000"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
+              placeholder={employmentType === "full-time" ? "10000000" : "150000"}
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
             />
           </div>
           <div className="space-y-2">
