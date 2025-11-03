@@ -22,7 +22,7 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
   const [dateOfBirth, setDateOfBirth] = useState(employee.dateOfBirth || "");
   const [nationalId, setNationalId] = useState(employee.nationalId || "");
   const [joinedDate, setJoinedDate] = useState(employee.joinedDate);
-  const [education, setEducation] = useState(employee.education || "");
+  const [team, setTeam] = useState(employee.team || "");
   const [rate, setRate] = useState(
     employee.employmentType === "full-time" 
       ? (employee.monthlySalary?.toString() || "")
@@ -42,7 +42,7 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
     setDateOfBirth(employee.dateOfBirth || "");
     setNationalId(employee.nationalId || "");
     setJoinedDate(employee.joinedDate);
-    setEducation(employee.education || "");
+    setTeam(employee.team || "");
     setRate(
       employee.employmentType === "full-time"
         ? (employee.monthlySalary?.toString() || "")
@@ -111,7 +111,7 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
         date_of_birth: dateOfBirth || null,
         national_id: nationalId || null,
         joined_date: joinedDate,
-        education: education || null,
+        team: team || null,
         employment_type: employmentType,
         phone: phone || null,
         email: email || null,
@@ -293,12 +293,12 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="education">Education</Label>
+              <Label htmlFor="team">Team/Department</Label>
               <Input
-                id="education"
-                value={education}
-                onChange={(e) => setEducation(e.target.value)}
-                placeholder="e.g., Bachelor's in Business"
+                id="team"
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                placeholder="e.g., Sales, Marketing, Operations"
               />
             </div>
           </div>
