@@ -29,6 +29,7 @@ export default function Shift() {
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [editingShift, setEditingShift] = useState<ShiftType | null>(null);
+  const [editingGroupIds, setEditingGroupIds] = useState<string[]>([]);
   const [selectedShifts, setSelectedShifts] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-asc");
@@ -109,12 +110,14 @@ export default function Shift() {
   const handleAddShift = (staffId: string) => {
     setSelectedStaffId(staffId);
     setEditingShift(null);
+    setEditingGroupIds([]);
     setShiftDialogOpen(true);
   };
 
-  const handleEditShift = (shift: ShiftType) => {
+  const handleEditShift = (shift: ShiftType, groupShiftIds?: string[]) => {
     setSelectedStaffId(shift.staffId);
     setEditingShift(shift);
+    setEditingGroupIds(groupShiftIds || []);
     setShiftDialogOpen(true);
   };
 
@@ -128,6 +131,40 @@ export default function Shift() {
     shiftId?: string
   ) => {
     if (!selectedStaffId || !user) return;
+
+    // If editing a group of shifts (when editingGroupIds is set)
+    if (editingGroupIds.length > 0 && isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
+      // Delete all shifts in the group
+      await supabase.from("shifts").delete().in("id", editingGroupIds);
+
+      // Create all new recurring shifts
+      const dates = generateRecurringDates(
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedDays
+      );
+
+      const shiftsToInsert = dates.map((date) => ({
+        user_id: user.id,
+        staff_id: selectedStaffId,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: date,
+      }));
+
+      const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+
+      if (error) {
+        toast.error("Failed to update recurring shifts");
+        return;
+      }
+
+      toast.success(`Updated to ${dates.length} recurring shifts`);
+      fetchShifts();
+      setEditingGroupIds([]);
+      return;
+    }
 
     // If editing an existing shift and converting to recurring
     if (shiftId && isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
@@ -819,17 +856,17 @@ export default function Shift() {
                                    </td>
                                   <td className="p-2 text-right">
                                     <div className="flex items-center gap-1 justify-end">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => {
-                                          const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
-                                          if (firstShift) handleEditShift(firstShift);
-                                        }}
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                      </Button>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         className="h-7 w-7 p-0"
+                                         onClick={() => {
+                                           const firstShift = shifts.find(s => s.id === group.shiftIds[0]);
+                                           if (firstShift) handleEditShift(firstShift, group.shiftIds);
+                                         }}
+                                       >
+                                         <Pencil className="h-3.5 w-3.5" />
+                                       </Button>
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -877,6 +914,7 @@ export default function Shift() {
         onOpenChange={setShiftDialogOpen}
         onSave={handleSaveShift}
         editShift={editingShift}
+        editingGroupShifts={editingGroupIds.length > 0 ? shifts.filter(s => editingGroupIds.includes(s.id)) : undefined}
       />
     </div>
   );

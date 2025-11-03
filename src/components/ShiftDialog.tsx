@@ -27,9 +27,10 @@ interface ShiftDialogProps {
   ) => void;
   defaultType?: ShiftType;
   editShift?: Shift | null;
+  editingGroupShifts?: Shift[];
 }
 
-export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift }: ShiftDialogProps) => {
+export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift, editingGroupShifts }: ShiftDialogProps) => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [shiftType, setShiftType] = useState<ShiftType>(defaultType);
@@ -39,18 +40,44 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   useEffect(() => {
-    if (editShift) {
+    if (editingGroupShifts && editingGroupShifts.length > 0) {
+      // Editing a group of recurring shifts
+      const firstShift = editingGroupShifts[0];
+      setStartTime(firstShift.startTime);
+      setEndTime(firstShift.endTime);
+      setShiftType(firstShift.type);
+      setIsRecurring(true);
+      
+      // Get all unique day names from the group
+      const uniqueDays = [...new Set(editingGroupShifts.map(s => {
+        const date = new Date(s.day);
+        const localDay = date.getDay();
+        return DAYS[localDay === 0 ? 6 : localDay - 1];
+      }))];
+      setSelectedDays(uniqueDays);
+      
+      // Set date range
+      const dates = editingGroupShifts.map(s => new Date(s.day)).sort((a, b) => a.getTime() - b.getTime());
+      setStartDate(dates[0]);
+      setEndDate(dates[dates.length - 1]);
+    } else if (editShift) {
       setStartTime(editShift.startTime);
       setEndTime(editShift.endTime);
       setShiftType(editShift.type);
       setIsRecurring(false);
+      setStartDate(new Date(editShift.day));
+      setEndDate(new Date(editShift.day));
+      setSelectedDays([]);
     } else {
       setStartTime("09:00");
       setEndTime("18:00");
       setShiftType(defaultType);
       setIsRecurring(false);
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setSelectedDays([]);
     }
-  }, [editShift, defaultType]);
+  }, [editShift, editingGroupShifts, defaultType]);
 
   const handleSave = () => {
     if (isRecurring && startDate && endDate && selectedDays.length > 0) {
@@ -86,7 +113,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{editShift ? "Edit Shift" : "Add Shift"}</DialogTitle>
+          <DialogTitle>{(editShift || editingGroupShifts) ? "Edit Shift" : "Add Shift"}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
