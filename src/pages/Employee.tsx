@@ -189,9 +189,9 @@ export default function Employee() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-accent">
-                ${staff.length > 0 
-                  ? (staff.reduce((sum, s) => sum + s.hourlyRate, 0) / staff.length).toFixed(2)
-                  : "0.00"}
+                ₫{staff.length > 0 
+                  ? (staff.reduce((sum, s) => sum + s.hourlyRate, 0) / staff.length).toLocaleString('vi-VN', { maximumFractionDigits: 0 })
+                  : "0"}
               </p>
             </CardContent>
           </Card>
@@ -204,7 +204,7 @@ export default function Employee() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-foreground">
-                ${staff.reduce((sum, s) => sum + s.hourlyRate, 0).toFixed(2)}
+                ₫{staff.reduce((sum, s) => sum + s.hourlyRate, 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
               </p>
             </CardContent>
           </Card>
@@ -280,7 +280,7 @@ export default function Employee() {
                       <Banknote className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="text-muted-foreground">Hourly Rate</span>
                       <span className="ml-auto text-primary font-semibold">
-                        ${member.hourlyRate.toFixed(2)}/hr
+                        ₫{member.hourlyRate.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr
                       </span>
                     </div>
                   </CardContent>

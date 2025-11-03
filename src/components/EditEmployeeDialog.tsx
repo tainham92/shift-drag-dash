@@ -211,11 +211,11 @@ export const EditEmployeeDialog = ({ open, onOpenChange, employee, onUpdate }: E
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rate">Hourly Rate ($) *</Label>
+              <Label htmlFor="rate">Hourly Rate (VND) *</Label>
               <Input
                 id="rate"
                 type="number"
-                step="0.01"
+                step="1000"
                 value={hourlyRate}
                 onChange={(e) => setHourlyRate(e.target.value)}
               />

@@ -83,12 +83,12 @@ export const StaffDialog = ({ open, onOpenChange, onSave }: StaffDialogProps) =>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="rate">Hourly Rate ($)</Label>
+            <Label htmlFor="rate">Hourly Rate (VND)</Label>
             <Input
               id="rate"
               type="number"
-              step="0.01"
-              placeholder="15.00"
+              step="1000"
+              placeholder="150000"
               value={hourlyRate}
               onChange={(e) => setHourlyRate(e.target.value)}
             />

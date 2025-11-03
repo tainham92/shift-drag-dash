@@ -190,7 +190,7 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-accent">${totalSalary.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-accent">₫{totalSalary.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}</p>
           </CardContent>
         </Card>
 
@@ -226,7 +226,7 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
                     <div>
                       <p className="font-semibold text-sm">{member.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        ${member.hourlyRate}/hr · {member.shiftCount} shifts
+                        ₫{member.hourlyRate.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}/hr · {member.shiftCount} shifts
                       </p>
                     </div>
                   </div>
@@ -235,7 +235,7 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
                       {member.totalHours.toFixed(1)} hrs
                     </p>
                     <p className="text-xs font-medium text-accent">
-                      ${member.salary.toFixed(2)}
+                      ₫{member.salary.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
                     </p>
                   </div>
                 </div>
