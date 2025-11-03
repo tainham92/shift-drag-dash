@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Staff, Shift } from "@/types/shift";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { calculateHours, getStaffColor } from "@/lib/timeUtils";
 
 export default function Dashboard() {
@@ -13,6 +13,8 @@ export default function Dashboard() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [sortColumn, setSortColumn] = useState<"name" | "shiftCount" | "daysWorked" | "totalHours" | "hourlyRate" | "salary">("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     checkAuth();
@@ -126,6 +128,45 @@ export default function Dashboard() {
     setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
   };
 
+  const handleSort = (column: typeof sortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedStaffHours = [...staffHours].sort((a, b) => {
+    let aValue: number | string = a[sortColumn];
+    let bValue: number | string = b[sortColumn];
+
+    // Handle null/undefined values for hourlyRate
+    if (sortColumn === "hourlyRate") {
+      aValue = a.hourlyRate || 0;
+      bValue = b.hourlyRate || 0;
+    }
+
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return sortDirection === "asc" 
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+
+    const numA = Number(aValue);
+    const numB = Number(bValue);
+    return sortDirection === "asc" ? numA - numB : numB - numA;
+  });
+
+  const SortIcon = ({ column }: { column: typeof sortColumn }) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 inline-block opacity-40" />;
+    }
+    return sortDirection === "asc" 
+      ? <ArrowUp className="h-4 w-4 ml-1 inline-block" />
+      : <ArrowDown className="h-4 w-4 ml-1 inline-block" />;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -211,16 +252,46 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Name</th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Shifts</th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Days</th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-muted-foreground">Hours</th>
-                    <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Hourly Rate</th>
-                    <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Salary (Month)</th>
+                    <th 
+                      className="text-left py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("name")}
+                    >
+                      Name <SortIcon column="name" />
+                    </th>
+                    <th 
+                      className="text-center py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("shiftCount")}
+                    >
+                      Shifts <SortIcon column="shiftCount" />
+                    </th>
+                    <th 
+                      className="text-center py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("daysWorked")}
+                    >
+                      Days <SortIcon column="daysWorked" />
+                    </th>
+                    <th 
+                      className="text-center py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("totalHours")}
+                    >
+                      Hours <SortIcon column="totalHours" />
+                    </th>
+                    <th 
+                      className="text-right py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("hourlyRate")}
+                    >
+                      Hourly Rate <SortIcon column="hourlyRate" />
+                    </th>
+                    <th 
+                      className="text-right py-3 px-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                      onClick={() => handleSort("salary")}
+                    >
+                      Salary (Month) <SortIcon column="salary" />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {staffHours.map((member) => {
+                  {sortedStaffHours.map((member) => {
                     const color = getStaffColor(member.colorIndex);
                     
                     return (
