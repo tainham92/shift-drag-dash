@@ -5,22 +5,45 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign, Pencil, Phone, Mail, Briefcase as Position } from "lucide-react";
+import { ArrowLeft, Calendar, CreditCard, GraduationCap, Briefcase, DollarSign, Pencil, Phone, Mail, Briefcase as Position, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Staff } from "@/types/shift";
+import { Staff, Shift as ShiftType, ShiftType as ShiftTypeEnum } from "@/types/shift";
 import { getStaffColor } from "@/lib/timeUtils";
 import { format } from "date-fns";
 import { EditEmployeeDialog } from "@/components/EditEmployeeDialog";
+import { EmployeeShiftsTable } from "@/components/EmployeeShiftsTable";
+import { ShiftDialog } from "@/components/ShiftDialog";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [employee, setEmployee] = useState<Staff | null>(null);
+  const [shifts, setShifts] = useState<ShiftType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
+  const [editingShift, setEditingShift] = useState<ShiftType | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchEmployee();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      fetchEmployee();
+      fetchShifts();
+    }
   }, [id]);
 
   const fetchEmployee = async () => {
@@ -56,6 +79,160 @@ export default function EmployeeProfile() {
 
     setEmployee(employeeData);
     setLoading(false);
+  };
+
+  const fetchShifts = async () => {
+    if (!id) return;
+
+    const { data, error } = await supabase
+      .from("shifts")
+      .select("*")
+      .eq("staff_id", id)
+      .order("day", { ascending: true });
+
+    if (error) {
+      toast.error("Failed to fetch shifts");
+      return;
+    }
+
+    const mappedShifts = (data || []).map((shift) => ({
+      id: shift.id,
+      staffId: shift.staff_id,
+      day: shift.day,
+      startTime: shift.start_time,
+      endTime: shift.end_time,
+      type: shift.type as ShiftTypeEnum,
+    }));
+
+    setShifts(mappedShifts);
+  };
+
+  const handleAddShift = () => {
+    setEditingShift(null);
+    setShiftDialogOpen(true);
+  };
+
+  const handleEditShift = (shift: ShiftType) => {
+    setEditingShift(shift);
+    setShiftDialogOpen(true);
+  };
+
+  const handleSaveShift = async (
+    startTime: string,
+    endTime: string,
+    type: ShiftTypeEnum,
+    isRecurring?: boolean,
+    dateRange?: { startDate: Date; endDate: Date },
+    selectedDays?: string[],
+    shiftId?: string
+  ) => {
+    if (!id || !user) return;
+
+    // If editing an existing shift and converting to recurring
+    if (shiftId && isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
+      // Delete the original shift
+      await supabase.from("shifts").delete().eq("id", shiftId);
+
+      // Create all recurring shifts
+      const { generateRecurringDates } = await import("@/lib/timeUtils");
+      const dates = generateRecurringDates(
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedDays
+      );
+
+      const shiftsToInsert = dates.map((date) => ({
+        user_id: user.id,
+        staff_id: id,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: date,
+      }));
+
+      const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+
+      if (error) {
+        toast.error("Failed to create recurring shifts");
+        return;
+      }
+
+      toast.success(`Created ${dates.length} recurring shifts`);
+      fetchShifts();
+      return;
+    }
+
+    // If editing an existing shift (non-recurring)
+    if (shiftId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+        })
+        .eq("id", shiftId);
+
+      if (error) {
+        toast.error("Failed to update shift");
+        return;
+      }
+
+      toast.success("Shift updated successfully");
+      fetchShifts();
+      return;
+    }
+
+    // Creating new shift(s)
+    if (isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
+      const { generateRecurringDates } = await import("@/lib/timeUtils");
+      const dates = generateRecurringDates(
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedDays
+      );
+
+      const shiftsToInsert = dates.map((date) => ({
+        user_id: user.id,
+        staff_id: id,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: date,
+      }));
+
+      const { error } = await supabase.from("shifts").insert(shiftsToInsert);
+
+      if (error) {
+        toast.error("Failed to add recurring shifts");
+        return;
+      }
+
+      toast.success(`Added ${dates.length} recurring shifts`);
+    } else {
+      // Single shift
+      const shiftDay = dateRange?.startDate 
+        ? dateRange.startDate.toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
+
+      const { error } = await supabase.from("shifts").insert({
+        user_id: user.id,
+        staff_id: id,
+        type,
+        start_time: startTime,
+        end_time: endTime,
+        day: shiftDay,
+      });
+
+      if (error) {
+        toast.error("Failed to add shift");
+        return;
+      }
+
+      toast.success("Shift added successfully");
+    }
+
+    fetchShifts();
   };
 
   const getInitials = (name: string) => {
@@ -228,11 +405,38 @@ export default function EmployeeProfile() {
         </Card>
       </div>
 
+      {/* Shifts Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Shifts</CardTitle>
+            <Button onClick={handleAddShift} size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Shift
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <EmployeeShiftsTable 
+            shifts={shifts} 
+            onRefresh={fetchShifts}
+            onEditShift={handleEditShift}
+          />
+        </CardContent>
+      </Card>
+
       <EditEmployeeDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         employee={employee}
         onUpdate={fetchEmployee}
+      />
+
+      <ShiftDialog
+        open={shiftDialogOpen}
+        onOpenChange={setShiftDialogOpen}
+        onSave={handleSaveShift}
+        editShift={editingShift}
       />
     </div>
   );
