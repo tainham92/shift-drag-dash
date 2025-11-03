@@ -167,15 +167,15 @@ export const EmployeeShiftsTable = ({ shifts, onRefresh, onEditShift, onAddShift
                     {summary ? (
                       <div className="flex flex-col gap-2">
                         {summary.groups.map((group, gIdx) => (
-                          <div key={gIdx} className="flex items-center gap-2">
-                            <Badge variant={getShiftTypeBadgeVariant(group.type)}>
-                              {group.type}
-                            </Badge>
+                          <div key={gIdx} className="flex items-start gap-2">
                             {(group.type === "regular" || group.type === "flexible") && (
-                              <span className="text-sm">
+                              <span className="text-base font-medium">
                                 {group.startTime} - {group.endTime}
                               </span>
                             )}
+                            <Badge variant={getShiftTypeBadgeVariant(group.type)} className="text-xs h-5 mt-0.5">
+                              {group.type}
+                            </Badge>
                           </div>
                         ))}
                       </div>
