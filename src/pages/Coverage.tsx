@@ -118,16 +118,36 @@ export default function Coverage() {
   const setNextWeek = () => setWeekStart(prev => addWeeks(prev, 1));
   const weekDates = getWeekDates(weekStart);
   const getStaffForTimeframe = (timeframe: typeof TIMEFRAMES[0], date: Date) => {
-    const startIdx = TIME_SLOTS.indexOf(timeframe.start);
-    const endIdx = TIME_SLOTS.indexOf(timeframe.end);
-    if (startIdx === -1 || endIdx === -1) return [];
-    const staffSet = new Set<string>();
-    for (let i = startIdx; i < endIdx; i++) {
-      const timeSlot = TIME_SLOTS[i];
-      const staffIds = calculateCoverageForTimeSlot(shifts, timeSlot, date);
-      staffIds.forEach(id => staffSet.add(id));
-    }
-    return staff.filter(s => staffSet.has(s.id));
+    const dateString = date.toISOString().split("T")[0];
+    const dayName = DAYS[date.getDay() === 0 ? 6 : date.getDay() - 1];
+    
+    const staffInTimeframe = shifts.filter(shift => {
+      const matchesDate = shift.day === dateString || shift.day === dayName;
+      const isWorkingShift = shift.type === "regular" || shift.type === "flexible";
+      if (!matchesDate || !isWorkingShift) return false;
+      
+      // Check if shift overlaps with timeframe using time comparison
+      const shiftStart = shift.startTime;
+      const shiftEnd = shift.endTime;
+      const tfStart = timeframe.start;
+      const tfEnd = timeframe.end;
+      
+      // Convert times to minutes for comparison
+      const toMinutes = (time: string) => {
+        const [h, m] = time.split(":").map(Number);
+        return h * 60 + m;
+      };
+      
+      const shiftStartMin = toMinutes(shiftStart);
+      const shiftEndMin = toMinutes(shiftEnd);
+      const tfStartMin = toMinutes(tfStart);
+      const tfEndMin = toMinutes(tfEnd);
+      
+      // Shift overlaps with timeframe if: shiftStart < tfEnd AND shiftEnd > tfStart
+      return shiftStartMin < tfEndMin && shiftEndMin > tfStartMin;
+    }).map(shift => shift.staffId);
+    
+    return staff.filter(s => staffInTimeframe.includes(s.id));
   };
   const getCoverageStats = () => {
     let totalCoverage = 0;
