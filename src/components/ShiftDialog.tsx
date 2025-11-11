@@ -32,9 +32,10 @@ interface ShiftDialogProps {
   editingGroupShifts?: Shift[];
   isPartOfRecurringGroup?: boolean;
   selectedDate?: Date;
+  simpleMode?: boolean; // Only show time editing and delete
 }
 
-export const ShiftDialog = ({ open, onOpenChange, onSave, onDelete, defaultType = "regular", editShift, editingGroupShifts, isPartOfRecurringGroup = false, selectedDate }: ShiftDialogProps) => {
+export const ShiftDialog = ({ open, onOpenChange, onSave, onDelete, defaultType = "regular", editShift, editingGroupShifts, isPartOfRecurringGroup = false, selectedDate, simpleMode = false }: ShiftDialogProps) => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [shiftType, setShiftType] = useState<ShiftType>(defaultType);
@@ -132,22 +133,24 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, onDelete, defaultType 
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Shift Type</Label>
-            <Select value={shiftType} onValueChange={(value) => setShiftType(value as ShiftType)}>
-              <SelectTrigger id="type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="regular">Regular Shift</SelectItem>
-                <SelectItem value="flexible">Flexible</SelectItem>
-                <SelectItem value="leave">On Leave</SelectItem>
-                <SelectItem value="week-off">Week Off</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!simpleMode && (
+            <div className="space-y-2">
+              <Label htmlFor="type">Shift Type</Label>
+              <Select value={shiftType} onValueChange={(value) => setShiftType(value as ShiftType)}>
+                <SelectTrigger id="type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="regular">Regular Shift</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                  <SelectItem value="leave">On Leave</SelectItem>
+                  <SelectItem value="week-off">Week Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          {(shiftType === "regular" || shiftType === "flexible") && (
+          {(simpleMode || shiftType === "regular" || shiftType === "flexible") && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="start">Start Time</Label>
@@ -171,115 +174,119 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, onDelete, defaultType 
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+          {!simpleMode && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP") : "Pick date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-            <div className="space-y-2">
-              <Label>End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="recurring"
-              checked={isRecurring}
-              onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
-            />
-            <Label htmlFor="recurring" className="font-normal cursor-pointer">
-              Repeat shift (recurring)
-            </Label>
-          </div>
-
-          {isRecurring && (
-            <div className="space-y-2">
-              <Label>Repeat on</Label>
-              <div className="flex gap-2 mb-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={selectWeekdays}
-                >
-                  Weekdays
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={selectWeekend}
-                >
-                  Weekend
-                </Button>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, "PPP") : "Pick date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
-              <div className="grid grid-cols-7 gap-2">
-                {DAYS.map((day) => (
-                  <div
-                    key={day}
-                    className="flex flex-col items-center gap-1"
-                  >
-                    <Checkbox
-                      id={day}
-                      checked={selectedDays.includes(day)}
-                      onCheckedChange={() => toggleDay(day)}
-                    />
-                    <Label
-                      htmlFor={day}
-                      className="text-xs font-normal cursor-pointer"
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="recurring"
+                  checked={isRecurring}
+                  onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
+                />
+                <Label htmlFor="recurring" className="font-normal cursor-pointer">
+                  Repeat shift (recurring)
+                </Label>
+              </div>
+
+              {isRecurring && (
+                <div className="space-y-2">
+                  <Label>Repeat on</Label>
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={selectWeekdays}
                     >
-                      {day}
-                    </Label>
+                      Weekdays
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={selectWeekend}
+                    >
+                      Weekend
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {DAYS.map((day) => (
+                      <div
+                        key={day}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <Checkbox
+                          id={day}
+                          checked={selectedDays.includes(day)}
+                          onCheckedChange={() => toggleDay(day)}
+                        />
+                        <Label
+                          htmlFor={day}
+                          className="text-xs font-normal cursor-pointer"
+                        >
+                          {day}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {isPartOfRecurringGroup && editShift && (
