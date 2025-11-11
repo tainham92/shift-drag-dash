@@ -13,8 +13,43 @@ interface MonthlyDashboardProps {
 }
 
 export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: MonthlyDashboardProps) => {
+  // Get all days in the current month
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days: Date[] = [];
+    
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      days.push(new Date(d));
+    }
+    
+    return days;
+  };
+
+  const monthDays = getDaysInMonth(currentMonth);
+
+  // Filter shifts for the current month
+  const monthShifts = shifts.filter((shift) => {
+    // Check if shift.day is a specific date (YYYY-MM-DD)
+    if (shift.day.includes('-')) {
+      const shiftDate = new Date(shift.day);
+      return shiftDate.getMonth() === currentMonth.getMonth() && 
+             shiftDate.getFullYear() === currentMonth.getFullYear();
+    }
+    
+    // For recurring shifts (day names), check if that day exists in the current month
+    return monthDays.some(date => {
+      const dayName = getDayOfWeek(date);
+      return shift.day === dayName;
+    });
+  });
+
   const staffHours = staff.map((member) => {
-    const memberShifts = shifts.filter((shift) => shift.staffId === member.id);
+    const memberShifts = monthShifts.filter(
+      (shift) => shift.staffId === member.id && (shift.type === "regular" || shift.type === "flexible")
+    );
     const totalHours = memberShifts.reduce((sum, shift) => {
       return sum + calculateHours(shift.startTime, shift.endTime);
     }, 0);
@@ -35,22 +70,6 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
   const totalSalary = staffHours.reduce((sum, s) => sum + s.salary, 0);
   const totalHours = staffHours.reduce((sum, s) => sum + s.totalHours, 0);
 
-  // Get all days in the current month
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const days: Date[] = [];
-    
-    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      days.push(new Date(d));
-    }
-    
-    return days;
-  };
-
-  const monthDays = getDaysInMonth(currentMonth);
   const monthName = currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
@@ -60,7 +79,7 @@ export const MonthlyDashboard = ({ shifts, staff, currentMonth, onAddShift }: Mo
     const day = String(date.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
     const dayName = getDayOfWeek(date);
-    return shifts.filter(s => s.staffId === staffId && (s.day === dateString || s.day === dayName));
+    return monthShifts.filter(s => s.staffId === staffId && (s.day === dateString || s.day === dayName));
   };
 
   const getInitials = (name: string) => {
