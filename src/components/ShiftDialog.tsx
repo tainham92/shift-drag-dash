@@ -26,13 +26,15 @@ interface ShiftDialogProps {
     shiftId?: string,
     editScope?: "single" | "all"
   ) => void;
+  onDelete?: (shiftId: string) => void;
   defaultType?: ShiftType;
   editShift?: Shift | null;
   editingGroupShifts?: Shift[];
   isPartOfRecurringGroup?: boolean;
+  selectedDate?: Date;
 }
 
-export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift, editingGroupShifts, isPartOfRecurringGroup = false }: ShiftDialogProps) => {
+export const ShiftDialog = ({ open, onOpenChange, onSave, onDelete, defaultType = "regular", editShift, editingGroupShifts, isPartOfRecurringGroup = false, selectedDate }: ShiftDialogProps) => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [shiftType, setShiftType] = useState<ShiftType>(defaultType);
@@ -68,16 +70,25 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
       setEndTime(editShift.endTime);
       setShiftType(editShift.type);
       setIsRecurring(false);
-      setStartDate(new Date(editShift.day));
-      setEndDate(new Date(editShift.day));
+      
+      // Parse the date - it could be a date string (YYYY-MM-DD) or use selectedDate as fallback
+      let shiftDate = selectedDate || new Date();
+      if (editShift.day && editShift.day.includes('-')) {
+        // It's a date string
+        const [year, month, day] = editShift.day.split('-').map(Number);
+        shiftDate = new Date(year, month - 1, day);
+      }
+      
+      setStartDate(shiftDate);
+      setEndDate(shiftDate);
       setSelectedDays([]);
     } else {
       setStartTime("09:00");
       setEndTime("18:00");
       setShiftType(defaultType);
       setIsRecurring(false);
-      setStartDate(undefined);
-      setEndDate(undefined);
+      setStartDate(selectedDate || undefined);
+      setEndDate(selectedDate || undefined);
       setSelectedDays([]);
     }
   }, [editShift, editingGroupShifts, defaultType]);
@@ -308,13 +319,28 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save Shift
-          </Button>
+        <DialogFooter className="gap-2">
+          <div className="flex w-full justify-between items-center gap-2">
+            {editShift && onDelete && (
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  onDelete(editShift.id);
+                  onOpenChange(false);
+                }}
+              >
+                Delete Shift
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                Save Shift
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

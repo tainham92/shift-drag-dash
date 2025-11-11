@@ -271,7 +271,28 @@ export default function Schedule() {
 
     setSelectedStaffId(shift.staffId);
     setEditingShift(shift);
+    
+    // Parse the date from the shift
+    let shiftDate = new Date();
+    if (shift.day && shift.day.includes('-')) {
+      const [year, month, day] = shift.day.split('-').map(Number);
+      shiftDate = new Date(year, month - 1, day);
+    }
+    setSelectedDate(shiftDate);
     setShiftDialogOpen(true);
+  };
+
+  const handleDeleteShift = async (shiftId: string) => {
+    const { error } = await supabase.from("shifts").delete().eq("id", shiftId);
+    
+    if (error) {
+      toast.error("Failed to delete shift");
+      return;
+    }
+    
+    setShifts(prev => prev.filter(s => s.id !== shiftId));
+    toast.success("Shift deleted");
+    fetchShifts();
   };
   const handlePreviousWeek = () => {
     const newDate = new Date(weekStartDate);
@@ -461,8 +482,10 @@ export default function Schedule() {
         open={shiftDialogOpen} 
         onOpenChange={setShiftDialogOpen} 
         onSave={handleSaveShift}
+        onDelete={handleDeleteShift}
         editShift={editingShift}
         isPartOfRecurringGroup={editingShift?.recurringGroupId != null}
+        selectedDate={selectedDate || undefined}
       />
     </div>;
 }
