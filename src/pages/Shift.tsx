@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square, X, Check } from "lucide-react";
+import { Plus, Trash2, Clock, Pencil, Filter, ArrowUpDown, CheckSquare, Square, X, Check, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { ShiftDialog } from "@/components/ShiftDialog";
 import { StaffDialog } from "@/components/StaffDialog";
@@ -20,6 +20,95 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SortableStaffAccordionItemProps {
+  member: Staff;
+  groupedShifts: Record<string, ShiftType[]>;
+  handleAddShift: (staffId: string) => void;
+  children: React.ReactNode;
+}
+
+function SortableStaffAccordionItem({
+  member,
+  groupedShifts,
+  handleAddShift,
+  children,
+}: SortableStaffAccordionItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: member.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <AccordionItem
+      key={member.id}
+      value={member.id}
+      ref={setNodeRef}
+      style={style}
+      className="border-b"
+    >
+      <AccordionTrigger className="hover:no-underline">
+        <div className="flex items-center justify-between w-full pr-4">
+          <div className="flex items-center gap-3">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing touch-none"
+            >
+              <GripVertical className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div
+              className="w-4 h-4 rounded-full"
+              style={{ backgroundColor: getStaffColor(member.colorIndex) }}
+            />
+            <h3 className="font-semibold">{member.name}</h3>
+            <span className="text-sm text-muted-foreground">
+              ({groupedShifts[member.id]?.length || 0} shifts)
+            </span>
+          </div>
+          <Button
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddShift(member.id);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Shift
+          </Button>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent>{children}</AccordionContent>
+    </AccordionItem>
+  );
+}
 
 export default function Shift() {
   const [user, setUser] = useState<any>(null);
@@ -85,7 +174,7 @@ export default function Shift() {
     const { data, error } = await supabase
       .from("staff")
       .select("*")
-      .order("name", { ascending: true });
+      .order("display_order", { ascending: true });
 
     if (error) {
       toast.error("Failed to fetch staff");
@@ -102,7 +191,8 @@ export default function Shift() {
       dateOfBirth: member.date_of_birth,
       nationalId: member.national_id,
       education: member.education,
-      avatarUrl: member.avatar_url
+      avatarUrl: member.avatar_url,
+      displayOrder: member.display_order
     }));
 
     setStaff(mappedStaff);
@@ -466,6 +556,42 @@ export default function Shift() {
     return sorted;
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = staff.findIndex((s) => s.id === active.id);
+    const newIndex = staff.findIndex((s) => s.id === over.id);
+
+    const newStaffOrder = arrayMove(staff, oldIndex, newIndex);
+    setStaff(newStaffOrder);
+
+    // Update display_order in database
+    const updates = newStaffOrder.map((member, index) => ({
+      id: member.id,
+      display_order: index,
+    }));
+
+    for (const update of updates) {
+      await supabase
+        .from("staff")
+        .update({ display_order: update.display_order })
+        .eq("id", update.id);
+    }
+
+    toast.success("Staff order updated");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -538,58 +664,47 @@ export default function Shift() {
             </div>
           </CardHeader>
           <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              {staff.map((member) => (
-                <AccordionItem key={member.id} value={member.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: getStaffColor(member.colorIndex) }}
-                        />
-                        <h3 className="font-semibold">{member.name}</h3>
-                        <span className="text-sm text-muted-foreground">
-                          ({groupedShifts[member.id]?.length || 0} shifts)
-                        </span>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddShift(member.id);
-                        }}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Shift
-                      </Button>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {groupedShifts[member.id]?.length > 0 ? (
-                      <div className="border rounded-md">
-                        <table className="w-full text-sm">
-                          <thead className="border-b bg-muted/50">
-                            <tr>
-                              <th className="w-10 p-2">
-                                <Checkbox
-                                  checked={
-                                    filterAndSortShifts(groupedShifts[member.id]).length > 0 &&
-                                    filterAndSortShifts(groupedShifts[member.id]).every(s => selectedShifts.has(s.id))
-                                  }
-                                  onCheckedChange={() => handleSelectAllStaffShifts(filterAndSortShifts(groupedShifts[member.id]))}
-                                />
-                              </th>
-                              <th className="text-left p-2 font-medium">Type</th>
-                              <th className="text-left p-2 font-medium">time</th>
-                              <th className="text-left p-2 font-medium">days</th>
-                              <th className="text-left p-2 font-medium">start date</th>
-                              <th className="text-left p-2 font-medium">end date</th>
-                              <th className="text-right p-2 font-medium">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {groupShiftsByTime(filterAndSortShifts(groupedShifts[member.id])).map((group, idx) => {
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={staff.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <Accordion type="single" collapsible className="w-full">
+                  {staff.map((member) => (
+                    <SortableStaffAccordionItem
+                      key={member.id}
+                      member={member}
+                      groupedShifts={groupedShifts}
+                      handleAddShift={handleAddShift}
+                    >
+                      {groupedShifts[member.id]?.length > 0 ? (
+                        <div className="border rounded-md">
+                          <table className="w-full text-sm">
+                            <thead className="border-b bg-muted/50">
+                              <tr>
+                                <th className="w-10 p-2">
+                                  <Checkbox
+                                    checked={
+                                      filterAndSortShifts(groupedShifts[member.id]).length > 0 &&
+                                      filterAndSortShifts(groupedShifts[member.id]).every(s => selectedShifts.has(s.id))
+                                    }
+                                    onCheckedChange={() => handleSelectAllStaffShifts(filterAndSortShifts(groupedShifts[member.id]))}
+                                  />
+                                </th>
+                                <th className="text-left p-2 font-medium">Type</th>
+                                <th className="text-left p-2 font-medium">time</th>
+                                <th className="text-left p-2 font-medium">days</th>
+                                <th className="text-left p-2 font-medium">start date</th>
+                                <th className="text-left p-2 font-medium">end date</th>
+                                <th className="text-right p-2 font-medium">Actions</th>
+                              </tr>
+                            </thead>
+                             <tbody>
+                             {groupShiftsByTime(filterAndSortShifts(groupedShifts[member.id])).map((group, idx) => {
                               const allSelected = group.shiftIds.every(id => selectedShifts.has(id));
                               const uniqueDayNames = [...new Set(group.days.map(d => d.dayName))].join(', ');
                               
@@ -950,18 +1065,19 @@ export default function Shift() {
                                 </tr>
                               );
                             })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground pt-2">
-                        {filterType !== "all" ? "No shifts match the current filter" : "No shifts assigned"}
-                      </p>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground pt-2">
+                          {filterType !== "all" ? "No shifts match the current filter" : "No shifts assigned"}
+                        </p>
+                      )}
+                    </SortableStaffAccordionItem>
+                  ))}
+                </Accordion>
+              </SortableContext>
+            </DndContext>
           </CardContent>
         </Card>
       </div>
