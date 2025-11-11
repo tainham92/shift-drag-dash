@@ -23,6 +23,7 @@ export default function Schedule() {
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [weekStartDate, setWeekStartDate] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -151,10 +152,88 @@ export default function Schedule() {
   const handleAddShift = (staffId: string, date: Date) => {
     setSelectedStaffId(staffId);
     setSelectedDate(date);
+    setEditingShift(null);
     setShiftDialogOpen(true);
   };
-  const handleSaveShift = async (startTime: string, endTime: string, type: ShiftType) => {
-    if (!selectedDate || !selectedStaffId || !user) return;
+  const handleSaveShift = async (
+    startTime: string,
+    endTime: string,
+    type: ShiftType,
+    isRecurring?: boolean,
+    dateRange?: { startDate: Date; endDate: Date },
+    selectedDays?: string[],
+    shiftId?: string,
+    editScope?: "single" | "all"
+  ) => {
+    if (!user) return;
+
+    // If editing a single occurrence of a recurring shift
+    if (shiftId && editScope === "single" && editingShift?.recurringGroupId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+          recurring_group_id: null, // Break it from the group
+        })
+        .eq("id", shiftId);
+
+      if (error) {
+        toast.error("Failed to update shift");
+        return;
+      }
+
+      toast.success("Shift updated for this day only");
+      fetchShifts();
+      return;
+    }
+
+    // If editing all occurrences of a recurring shift
+    if (shiftId && editScope === "all" && editingShift?.recurringGroupId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+        })
+        .eq("recurring_group_id", editingShift.recurringGroupId);
+
+      if (error) {
+        toast.error("Failed to update recurring shifts");
+        return;
+      }
+
+      toast.success("All recurring shifts updated");
+      fetchShifts();
+      return;
+    }
+
+    // If editing an existing shift (non-recurring)
+    if (shiftId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+        })
+        .eq("id", shiftId);
+
+      if (error) {
+        toast.error("Failed to update shift");
+        return;
+      }
+
+      toast.success("Shift updated successfully");
+      fetchShifts();
+      return;
+    }
+
+    // Adding a new shift
+    if (!selectedDate || !selectedStaffId) return;
+
     const {
       data,
       error
@@ -167,10 +246,12 @@ export default function Schedule() {
       type: type,
       recurring_group_id: null
     }).select().single();
+
     if (error) {
       toast.error("Failed to add shift");
       return;
     }
+
     const newShift: Shift = {
       id: data.id,
       staffId: data.staff_id,
@@ -184,15 +265,13 @@ export default function Schedule() {
     toast.success("Shift added");
   };
   const handleShiftClick = async (shift: Shift) => {
-    const {
-      error
-    } = await supabase.from("shifts").delete().eq("id", shift.id);
-    if (error) {
-      toast.error("Failed to remove shift");
-      return;
-    }
-    setShifts(prev => prev.filter(s => s.id !== shift.id));
-    toast.success("Shift removed");
+    // Find the staff member for this shift
+    const staffMember = staff.find(s => s.id === shift.staffId);
+    if (!staffMember) return;
+
+    setSelectedStaffId(shift.staffId);
+    setEditingShift(shift);
+    setShiftDialogOpen(true);
   };
   const handlePreviousWeek = () => {
     const newDate = new Date(weekStartDate);
@@ -378,6 +457,12 @@ export default function Schedule() {
 
       <StaffDialog open={staffDialogOpen} onOpenChange={setStaffDialogOpen} onSave={handleAddStaff} />
 
-      <ShiftDialog open={shiftDialogOpen} onOpenChange={setShiftDialogOpen} onSave={handleSaveShift} />
+      <ShiftDialog 
+        open={shiftDialogOpen} 
+        onOpenChange={setShiftDialogOpen} 
+        onSave={handleSaveShift}
+        editShift={editingShift}
+        isPartOfRecurringGroup={editingShift?.recurringGroupId != null}
+      />
     </div>;
 }
