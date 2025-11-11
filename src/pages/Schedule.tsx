@@ -79,7 +79,8 @@ export default function Schedule() {
       day: s.day,
       startTime: s.start_time,
       endTime: s.end_time,
-      type: s.type as ShiftType
+      type: s.type as ShiftType,
+      recurringGroupId: s.recurring_group_id,
     }));
     setShifts(shiftsData);
   };
@@ -163,7 +164,8 @@ export default function Schedule() {
       day: getDayOfWeek(selectedDate),
       start_time: startTime,
       end_time: endTime,
-      type: type
+      type: type,
+      recurring_group_id: null
     }).select().single();
     if (error) {
       toast.error("Failed to add shift");
@@ -175,7 +177,8 @@ export default function Schedule() {
       day: data.day,
       startTime: data.start_time,
       endTime: data.end_time,
-      type: data.type as ShiftType
+      type: data.type as ShiftType,
+      recurringGroupId: data.recurring_group_id
     };
     setShifts(prev => [...prev, newShift]);
     toast.success("Shift added");

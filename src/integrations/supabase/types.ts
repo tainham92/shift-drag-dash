@@ -20,6 +20,7 @@ export type Database = {
           day: string
           end_time: string
           id: string
+          recurring_group_id: string | null
           staff_id: string
           start_time: string
           type: string
@@ -31,6 +32,7 @@ export type Database = {
           day: string
           end_time: string
           id?: string
+          recurring_group_id?: string | null
           staff_id: string
           start_time: string
           type: string
@@ -42,6 +44,7 @@ export type Database = {
           day?: string
           end_time?: string
           id?: string
+          recurring_group_id?: string | null
           staff_id?: string
           start_time?: string
           type?: string

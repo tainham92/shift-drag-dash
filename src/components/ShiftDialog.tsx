@@ -23,14 +23,16 @@ interface ShiftDialogProps {
     isRecurring?: boolean,
     dateRange?: { startDate: Date; endDate: Date },
     selectedDays?: string[],
-    shiftId?: string
+    shiftId?: string,
+    editScope?: "single" | "all"
   ) => void;
   defaultType?: ShiftType;
   editShift?: Shift | null;
   editingGroupShifts?: Shift[];
+  isPartOfRecurringGroup?: boolean;
 }
 
-export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift, editingGroupShifts }: ShiftDialogProps) => {
+export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular", editShift, editingGroupShifts, isPartOfRecurringGroup = false }: ShiftDialogProps) => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("18:00");
   const [shiftType, setShiftType] = useState<ShiftType>(defaultType);
@@ -38,6 +40,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [editScope, setEditScope] = useState<"single" | "all">("single");
 
   useEffect(() => {
     if (editingGroupShifts && editingGroupShifts.length > 0) {
@@ -81,9 +84,9 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
 
   const handleSave = () => {
     if (isRecurring && startDate && endDate && selectedDays.length > 0) {
-      onSave(startTime, endTime, shiftType, true, { startDate, endDate }, selectedDays, editShift?.id);
+      onSave(startTime, endTime, shiftType, true, { startDate, endDate }, selectedDays, editShift?.id, editScope);
     } else {
-      onSave(startTime, endTime, shiftType, false, undefined, undefined, editShift?.id);
+      onSave(startTime, endTime, shiftType, false, undefined, undefined, editShift?.id, editScope);
     }
     onOpenChange(false);
     setStartTime("09:00");
@@ -93,6 +96,7 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
     setStartDate(undefined);
     setEndDate(undefined);
     setSelectedDays([]);
+    setEditScope("single");
   };
 
   const toggleDay = (day: string) => {
@@ -263,6 +267,42 @@ export const ShiftDialog = ({ open, onOpenChange, onSave, defaultType = "regular
                     </Label>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {isPartOfRecurringGroup && editShift && (
+            <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+              <Label className="text-sm font-medium">Edit Options</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="edit-single"
+                    name="edit-scope"
+                    value="single"
+                    checked={editScope === "single"}
+                    onChange={(e) => setEditScope(e.target.value as "single")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="edit-single" className="font-normal cursor-pointer">
+                    Edit only this day ({new Date(editShift.day).toLocaleDateString()})
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="edit-all"
+                    name="edit-scope"
+                    value="all"
+                    checked={editScope === "all"}
+                    onChange={(e) => setEditScope(e.target.value as "all")}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="edit-all" className="font-normal cursor-pointer">
+                    Edit all recurring shifts in this series
+                  </Label>
+                </div>
               </div>
             </div>
           )}

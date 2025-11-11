@@ -27,6 +27,7 @@ export interface Shift {
   startTime: string;
   endTime: string;
   type: ShiftType;
+  recurringGroupId?: string | null;
 }
 
 export interface TimeSlot {

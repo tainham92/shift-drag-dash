@@ -75,6 +75,7 @@ export default function Shift() {
       startTime: shift.start_time,
       endTime: shift.end_time,
       type: shift.type as ShiftTypeEnum,
+      recurringGroupId: shift.recurring_group_id,
     }));
 
     setShifts(mappedShifts);
@@ -128,9 +129,53 @@ export default function Shift() {
     isRecurring?: boolean,
     dateRange?: { startDate: Date; endDate: Date },
     selectedDays?: string[],
-    shiftId?: string
+    shiftId?: string,
+    editScope?: "single" | "all"
   ) => {
     if (!selectedStaffId || !user) return;
+
+    // If editing a single occurrence of a recurring shift
+    if (shiftId && editScope === "single" && editingShift?.recurringGroupId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+          recurring_group_id: null, // Break it from the group
+        })
+        .eq("id", shiftId);
+
+      if (error) {
+        toast.error("Failed to update shift");
+        return;
+      }
+
+      toast.success("Shift updated for this day only");
+      fetchShifts();
+      return;
+    }
+
+    // If editing all occurrences of a recurring shift
+    if (shiftId && editScope === "all" && editingShift?.recurringGroupId) {
+      const { error } = await supabase
+        .from("shifts")
+        .update({
+          type,
+          start_time: startTime,
+          end_time: endTime,
+        })
+        .eq("recurring_group_id", editingShift.recurringGroupId);
+
+      if (error) {
+        toast.error("Failed to update recurring shifts");
+        return;
+      }
+
+      toast.success("All recurring shifts updated");
+      fetchShifts();
+      return;
+    }
 
     // If editing a group of shifts (when editingGroupIds is set)
     if (editingGroupIds.length > 0 && isRecurring && dateRange && selectedDays && selectedDays.length > 0) {
@@ -144,6 +189,9 @@ export default function Shift() {
         selectedDays
       );
 
+      // Generate a group ID for this recurring shift series  
+      const recurringGroupId = crypto.randomUUID();
+
       const shiftsToInsert = dates.map((date) => ({
         user_id: user.id,
         staff_id: selectedStaffId,
@@ -151,6 +199,7 @@ export default function Shift() {
         start_time: startTime,
         end_time: endTime,
         day: date,
+        recurring_group_id: recurringGroupId,
       }));
 
       const { error } = await supabase.from("shifts").insert(shiftsToInsert);
@@ -178,6 +227,9 @@ export default function Shift() {
         selectedDays
       );
 
+      // Generate a group ID for this recurring shift series
+      const recurringGroupId = crypto.randomUUID();
+
       const shiftsToInsert = dates.map((date) => ({
         user_id: user.id,
         staff_id: selectedStaffId,
@@ -185,6 +237,7 @@ export default function Shift() {
         start_time: startTime,
         end_time: endTime,
         day: date,
+        recurring_group_id: recurringGroupId,
       }));
 
       const { error } = await supabase.from("shifts").insert(shiftsToInsert);
@@ -227,6 +280,9 @@ export default function Shift() {
         selectedDays
       );
 
+      // Generate a group ID for this recurring shift series
+      const recurringGroupId = crypto.randomUUID();
+
       const shiftsToInsert = dates.map((date) => ({
         user_id: user.id,
         staff_id: selectedStaffId,
@@ -234,6 +290,7 @@ export default function Shift() {
         start_time: startTime,
         end_time: endTime,
         day: date,
+        recurring_group_id: recurringGroupId,
       }));
 
       const { error } = await supabase.from("shifts").insert(shiftsToInsert);
@@ -915,6 +972,7 @@ export default function Shift() {
         onSave={handleSaveShift}
         editShift={editingShift}
         editingGroupShifts={editingGroupIds.length > 0 ? shifts.filter(s => editingGroupIds.includes(s.id)) : undefined}
+        isPartOfRecurringGroup={editingShift?.recurringGroupId != null}
       />
     </div>
   );
