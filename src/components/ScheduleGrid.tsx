@@ -144,8 +144,8 @@ const SortableStaffRow = ({
       style={style}
       className="grid grid-cols-[200px_repeat(7,minmax(140px,1fr))] border-b border-border hover:bg-muted/30 transition-colors"
     >
-      {/* Staff name cell with drag handle */}
-      <div className="p-4 border-r border-border flex items-center gap-3">
+      {/* Staff name cell with drag handle - Sticky */}
+      <div className="p-4 border-r border-border flex items-center gap-3 sticky left-0 bg-background z-10">
         <button
           className="cursor-grab active:cursor-grabbing touch-none"
           {...attributes}
@@ -231,11 +231,11 @@ export const ScheduleGrid = ({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <div className="overflow-auto">
+      <div className="overflow-x-auto">
         <div className="inline-block min-w-full">
           {/* Header with dates */}
           <div className="grid grid-cols-[200px_repeat(7,minmax(140px,1fr))] border-b border-border bg-card">
-            <div className="p-4 font-semibold text-sm border-r border-border">
+            <div className="p-4 font-semibold text-sm border-r border-border sticky left-0 bg-card z-20">
               Employee Name
             </div>
             {weekDates.map((date, idx) => (
