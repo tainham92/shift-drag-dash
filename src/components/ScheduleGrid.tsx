@@ -31,6 +31,54 @@ interface ScheduleGridProps {
   onStaffReorder: (reorderedStaff: Staff[]) => void;
 }
 
+interface SortableStaffRowProps {
+  staffMember: Staff;
+}
+
+const SortableStaffRow = ({ staffMember }: SortableStaffRowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: staffMember.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const color = getStaffColor(staffMember.colorIndex);
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="p-4 border-b border-border flex items-center gap-3 min-h-[80px] bg-background hover:bg-muted/30 transition-colors sticky left-0 z-10"
+    >
+      <button
+        className="cursor-grab active:cursor-grabbing touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+      </button>
+      <Avatar className="h-8 w-8" style={{ backgroundColor: color }}>
+        <AvatarFallback className="text-white text-xs font-medium">
+          {getInitials(staffMember.name)}
+        </AvatarFallback>
+      </Avatar>
+      <span className="text-sm font-medium truncate">{staffMember.name}</span>
+    </div>
+  );
+};
+
 const ShiftCard = ({ shift, staff, onShiftClick }: { shift: Shift; staff: Staff; onShiftClick: (shift: Shift) => void }) => {
   const color = getStaffColor(staff.colorIndex);
   const hours = calculateHours(shift.startTime, shift.endTime);
@@ -91,11 +139,7 @@ const ShiftCard = ({ shift, staff, onShiftClick }: { shift: Shift; staff: Staff;
   );
 };
 
-// Interface removed as component restructured
-
-// SortableStaffRow component is no longer needed as we've restructured the layout
-
-export const ScheduleGrid = ({ 
+export const ScheduleGrid = ({
   shifts, 
   staff, 
   weekStartDate,
@@ -143,50 +187,9 @@ export const ScheduleGrid = ({
             items={staff.map(s => s.id)}
             strategy={verticalListSortingStrategy}
           >
-            {staff.map((staffMember) => {
-              const {
-                attributes,
-                listeners,
-                setNodeRef,
-                transform,
-                transition,
-                isDragging,
-              } = useSortable({ id: staffMember.id });
-
-              const style = {
-                transform: CSS.Transform.toString(transform),
-                transition,
-                opacity: isDragging ? 0.5 : 1,
-              };
-
-              const color = getStaffColor(staffMember.colorIndex);
-              const getInitials = (name: string) => {
-                return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-              };
-
-              return (
-                <div
-                  key={staffMember.id}
-                  ref={setNodeRef}
-                  style={style}
-                  className="p-4 border-b border-border flex items-center gap-3 min-h-[80px] bg-background hover:bg-muted/30 transition-colors"
-                >
-                  <button
-                    className="cursor-grab active:cursor-grabbing touch-none"
-                    {...attributes}
-                    {...listeners}
-                  >
-                    <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
-                  </button>
-                  <Avatar className="h-8 w-8" style={{ backgroundColor: color }}>
-                    <AvatarFallback className="text-white text-xs font-medium">
-                      {getInitials(staffMember.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium truncate">{staffMember.name}</span>
-                </div>
-              );
-            })}
+            {staff.map((staffMember) => (
+              <SortableStaffRow key={staffMember.id} staffMember={staffMember} />
+            ))}
           </SortableContext>
         </div>
 
