@@ -91,110 +91,9 @@ const ShiftCard = ({ shift, staff, onShiftClick }: { shift: Shift; staff: Staff;
   );
 };
 
-interface SortableStaffRowProps {
-  staffMember: Staff;
-  weekDates: Date[];
-  shifts: Shift[];
-  onAddShift: (staffId: string, date: Date) => void;
-  onShiftClick: (shift: Shift) => void;
-}
+// Interface removed as component restructured
 
-const SortableStaffRow = ({ 
-  staffMember, 
-  weekDates, 
-  shifts,
-  onAddShift,
-  onShiftClick 
-}: SortableStaffRowProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: staffMember.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  const color = getStaffColor(staffMember.colorIndex);
-
-  const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
-    const dayName = getDayOfWeek(date);
-    // Use local date string to avoid timezone issues
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${day}`;
-    
-    return shifts.filter(s => s.staffId === staffId && (s.day === dayName || s.day === dateString));
-  };
-
-  const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="grid grid-cols-[200px_repeat(7,minmax(140px,1fr))] border-b border-border hover:bg-muted/30 transition-colors"
-    >
-      {/* Staff name cell with drag handle - Sticky */}
-      <div className="p-4 border-r border-border flex items-center gap-3 sticky left-0 bg-background z-10">
-        <button
-          className="cursor-grab active:cursor-grabbing touch-none"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
-        </button>
-        <Avatar className="h-8 w-8" style={{ backgroundColor: color }}>
-          <AvatarFallback className="text-white text-xs font-medium">
-            {getInitials(staffMember.name)}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-sm font-medium truncate">{staffMember.name}</span>
-      </div>
-
-      {/* Day cells */}
-      {weekDates.map((date, idx) => {
-        const dayShifts = getShiftsForStaffAndDay(staffMember.id, date);
-        
-        return (
-          <div
-            key={idx}
-            className="p-3 border-r last:border-r-0 border-border min-h-[80px] space-y-2"
-          >
-            {dayShifts.length > 0 ? (
-              dayShifts.map((shift) => (
-                <ShiftCard
-                  key={shift.id}
-                  shift={shift}
-                  staff={staffMember}
-                  onShiftClick={onShiftClick}
-                />
-              ))
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-8 text-primary hover:bg-primary/10"
-                onClick={() => onAddShift(staffMember.id, date)}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+// SortableStaffRow component is no longer needed as we've restructured the layout
 
 export const ScheduleGrid = ({ 
   shifts, 
@@ -231,47 +130,137 @@ export const ScheduleGrid = ({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <div className="overflow-x-auto">
-        <div className="inline-block min-w-full">
-          {/* Header with dates */}
-          <div className="grid grid-cols-[200px_repeat(7,minmax(140px,1fr))] border-b border-border bg-card">
-            <div className="p-4 font-semibold text-sm border-r border-border sticky left-0 bg-card z-20">
-              Employee Name
-            </div>
-            {weekDates.map((date, idx) => (
-              <div
-                key={idx}
-                className="p-4 text-center border-r last:border-r-0 border-border"
-              >
-                <div className="text-2xl font-bold text-foreground">
-                  {date.getDate()}
-                </div>
-                <div className="text-xs text-muted-foreground uppercase mt-1">
-                  {getDayOfWeek(date)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {date.toLocaleDateString("en-US", { month: "short" })}
-                </div>
-              </div>
-            ))}
+      <div className="flex border border-border rounded-lg overflow-hidden">
+        {/* Fixed left column - Staff names */}
+        <div className="flex-shrink-0 w-[200px] border-r border-border">
+          {/* Header */}
+          <div className="p-4 font-semibold text-sm border-b border-border bg-card h-[88px] flex items-center">
+            Employee Name
           </div>
-
-          {/* Staff rows with drag and drop */}
+          
+          {/* Staff names */}
           <SortableContext
             items={staff.map(s => s.id)}
             strategy={verticalListSortingStrategy}
           >
-            {staff.map((staffMember) => (
-              <SortableStaffRow
-                key={staffMember.id}
-                staffMember={staffMember}
-                weekDates={weekDates}
-                shifts={shifts}
-                onAddShift={onAddShift}
-                onShiftClick={onShiftClick}
-              />
-            ))}
+            {staff.map((staffMember) => {
+              const {
+                attributes,
+                listeners,
+                setNodeRef,
+                transform,
+                transition,
+                isDragging,
+              } = useSortable({ id: staffMember.id });
+
+              const style = {
+                transform: CSS.Transform.toString(transform),
+                transition,
+                opacity: isDragging ? 0.5 : 1,
+              };
+
+              const color = getStaffColor(staffMember.colorIndex);
+              const getInitials = (name: string) => {
+                return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+              };
+
+              return (
+                <div
+                  key={staffMember.id}
+                  ref={setNodeRef}
+                  style={style}
+                  className="p-4 border-b border-border flex items-center gap-3 min-h-[80px] bg-background hover:bg-muted/30 transition-colors"
+                >
+                  <button
+                    className="cursor-grab active:cursor-grabbing touch-none"
+                    {...attributes}
+                    {...listeners}
+                  >
+                    <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+                  </button>
+                  <Avatar className="h-8 w-8" style={{ backgroundColor: color }}>
+                    <AvatarFallback className="text-white text-xs font-medium">
+                      {getInitials(staffMember.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium truncate">{staffMember.name}</span>
+                </div>
+              );
+            })}
           </SortableContext>
+        </div>
+
+        {/* Scrollable right area - Dates and shifts */}
+        <div className="flex-1 overflow-x-auto">
+          <div className="inline-block min-w-full">
+            {/* Header with dates */}
+            <div className="grid grid-cols-7 border-b border-border bg-card">
+              {weekDates.map((date, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 text-center border-r last:border-r-0 border-border min-w-[140px]"
+                >
+                  <div className="text-2xl font-bold text-foreground">
+                    {date.getDate()}
+                  </div>
+                  <div className="text-xs text-muted-foreground uppercase mt-1">
+                    {getDayOfWeek(date)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {date.toLocaleDateString("en-US", { month: "short" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Shift cells */}
+            {staff.map((staffMember) => {
+              const getShiftsForStaffAndDay = (staffId: string, date: Date) => {
+                const dayName = getDayOfWeek(date);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const dateString = `${year}-${month}-${day}`;
+                
+                return shifts.filter(s => s.staffId === staffId && (s.day === dayName || s.day === dateString));
+              };
+
+              return (
+                <div key={staffMember.id} className="grid grid-cols-7 border-b border-border hover:bg-muted/30 transition-colors">
+                  {weekDates.map((date, idx) => {
+                    const dayShifts = getShiftsForStaffAndDay(staffMember.id, date);
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 border-r last:border-r-0 border-border min-h-[80px] min-w-[140px] space-y-2"
+                      >
+                        {dayShifts.length > 0 ? (
+                          dayShifts.map((shift) => (
+                            <ShiftCard
+                              key={shift.id}
+                              shift={shift}
+                              staff={staffMember}
+                              onShiftClick={onShiftClick}
+                            />
+                          ))
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-8 text-primary hover:bg-primary/10"
+                            onClick={() => onAddShift(staffMember.id, date)}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </DndContext>
