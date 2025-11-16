@@ -487,6 +487,7 @@ export default function Schedule() {
         isPartOfRecurringGroup={editingShift?.recurringGroupId != null}
         selectedDate={selectedDate || undefined}
         simpleMode={true}
+        defaultType={editingShift ? editingShift.type : "flexible"}
       />
     </div>;
 }
