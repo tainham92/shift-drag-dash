@@ -495,8 +495,17 @@ export default function Shift() {
     }> = [];
 
     staffShifts.forEach(shift => {
-      const date = new Date(shift.day);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      // Check if shift.day is a date string (YYYY-MM-DD) or a day name
+      const isDateString = /^\d{4}-\d{2}-\d{2}$/.test(shift.day);
+      let dayName: string;
+      
+      if (isDateString) {
+        const date = new Date(shift.day + 'T00:00:00');
+        dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      } else {
+        // It's already a day name
+        dayName = shift.day.toLowerCase();
+      }
       
       const existingGroup = groups.find(
         g => g.type === shift.type && 
@@ -507,17 +516,23 @@ export default function Shift() {
       if (existingGroup) {
         existingGroup.days.push({ day: shift.day, dayName, shiftId: shift.id });
         existingGroup.shiftIds.push(shift.id);
-        // Update date range
-        if (shift.day < existingGroup.startDate) existingGroup.startDate = shift.day;
-        if (shift.day > existingGroup.endDate) existingGroup.endDate = shift.day;
+        // Update date range only if it's a valid date string
+        if (isDateString) {
+          if (shift.day < existingGroup.startDate || !existingGroup.startDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            existingGroup.startDate = shift.day;
+          }
+          if (shift.day > existingGroup.endDate || !existingGroup.endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            existingGroup.endDate = shift.day;
+          }
+        }
       } else {
         groups.push({
           type: shift.type,
           startTime: shift.startTime,
           endTime: shift.endTime,
           days: [{ day: shift.day, dayName, shiftId: shift.id }],
-          startDate: shift.day,
-          endDate: shift.day,
+          startDate: isDateString ? shift.day : '',
+          endDate: isDateString ? shift.day : '',
           shiftIds: [shift.id]
         });
       }
@@ -525,7 +540,14 @@ export default function Shift() {
 
     // Sort days within each group
     groups.forEach(group => {
-      group.days.sort((a, b) => a.day.localeCompare(b.day));
+      group.days.sort((a, b) => {
+        const aIsDate = /^\d{4}-\d{2}-\d{2}$/.test(a.day);
+        const bIsDate = /^\d{4}-\d{2}-\d{2}$/.test(b.day);
+        if (aIsDate && bIsDate) {
+          return a.day.localeCompare(b.day);
+        }
+        return a.dayName.localeCompare(b.dayName);
+      });
     });
 
     return groups;
@@ -913,119 +935,119 @@ export default function Shift() {
                                      </div>
                                    </td>
                                    <td className="p-2">
-                                     {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'startDate' ? (
-                                       <div className="flex items-center gap-2">
-                                         <Popover>
-                                           <PopoverTrigger asChild>
-                                             <Button variant="outline" size="sm" className="h-8 justify-start">
-                                               <CalendarIcon className="h-3.5 w-3.5 mr-2" />
-                                               {format(new Date(group.startDate), "PP")}
-                                             </Button>
-                                           </PopoverTrigger>
-                                           <PopoverContent className="w-auto p-0" align="start">
-                                             <Calendar
-                                               mode="single"
-                                               selected={new Date(group.startDate)}
-                                               onSelect={async (date) => {
-                                                 if (!date) return;
-                                                 const newDate = date.toISOString().split("T")[0];
-                                                 const oldDate = group.startDate;
-                                                 
-                                                 // Update all shifts with this start date
-                                                 const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
-                                                 const { error } = await supabase
-                                                   .from("shifts")
-                                                   .update({ day: newDate })
-                                                   .in("id", shiftsToUpdate.map(s => s.shiftId));
-                                                 
-                                                 if (!error) {
-                                                   toast.success("Start date updated");
-                                                   fetchShifts();
-                                                   setEditingField(null);
-                                                 } else {
-                                                   toast.error("Failed to update start date");
-                                                 }
-                                               }}
-                                               initialFocus
-                                               className="pointer-events-auto"
-                                             />
-                                           </PopoverContent>
-                                         </Popover>
-                                         <Button
-                                           size="sm"
-                                           variant="ghost"
-                                           className="h-7 w-7 p-0"
-                                           onClick={() => setEditingField(null)}
-                                         >
-                                           <Check className="h-3.5 w-3.5" />
-                                         </Button>
-                                       </div>
-                                     ) : (
-                                       <button
-                                         onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'startDate' })}
-                                         className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
-                                       >
-                                         {group.startDate}
-                                       </button>
-                                     )}
-                                   </td>
+                                      {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'startDate' ? (
+                                        <div className="flex items-center gap-2">
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button variant="outline" size="sm" className="h-8 justify-start">
+                                                <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                                                {group.startDate ? format(new Date(group.startDate + 'T00:00:00'), "PP") : "Select date"}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                              <Calendar
+                                                mode="single"
+                                                selected={group.startDate ? new Date(group.startDate + 'T00:00:00') : undefined}
+                                                onSelect={async (date) => {
+                                                  if (!date) return;
+                                                  const newDate = date.toISOString().split("T")[0];
+                                                  const oldDate = group.startDate;
+                                                  
+                                                  // Update all shifts with this start date
+                                                  const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
+                                                  const { error } = await supabase
+                                                    .from("shifts")
+                                                    .update({ day: newDate })
+                                                    .in("id", shiftsToUpdate.map(s => s.shiftId));
+                                                  
+                                                  if (!error) {
+                                                    toast.success("Start date updated");
+                                                    fetchShifts();
+                                                    setEditingField(null);
+                                                  } else {
+                                                    toast.error("Failed to update start date");
+                                                  }
+                                                }}
+                                                initialFocus
+                                                className="pointer-events-auto"
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0"
+                                            onClick={() => setEditingField(null)}
+                                          >
+                                            <Check className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'startDate' })}
+                                          className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                        >
+                                          {group.startDate ? format(new Date(group.startDate + 'T00:00:00'), "yyyy-MM-dd") : "-"}
+                                        </button>
+                                      )}
+                                    </td>
                                    <td className="p-2">
-                                     {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'endDate' ? (
-                                       <div className="flex items-center gap-2">
-                                         <Popover>
-                                           <PopoverTrigger asChild>
-                                             <Button variant="outline" size="sm" className="h-8 justify-start">
-                                               <CalendarIcon className="h-3.5 w-3.5 mr-2" />
-                                               {format(new Date(group.endDate), "PP")}
-                                             </Button>
-                                           </PopoverTrigger>
-                                           <PopoverContent className="w-auto p-0" align="start">
-                                             <Calendar
-                                               mode="single"
-                                               selected={new Date(group.endDate)}
-                                               onSelect={async (date) => {
-                                                 if (!date) return;
-                                                 const newDate = date.toISOString().split("T")[0];
-                                                 const oldDate = group.endDate;
-                                                 
-                                                 // Update all shifts with this end date
-                                                 const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
-                                                 const { error } = await supabase
-                                                   .from("shifts")
-                                                   .update({ day: newDate })
-                                                   .in("id", shiftsToUpdate.map(s => s.shiftId));
-                                                 
-                                                 if (!error) {
-                                                   toast.success("End date updated");
-                                                   fetchShifts();
-                                                   setEditingField(null);
-                                                 } else {
-                                                   toast.error("Failed to update end date");
-                                                 }
-                                               }}
-                                               initialFocus
-                                               className="pointer-events-auto"
-                                             />
-                                           </PopoverContent>
-                                         </Popover>
-                                         <Button
-                                           size="sm"
-                                           variant="ghost"
-                                           className="h-7 w-7 p-0"
-                                           onClick={() => setEditingField(null)}
-                                         >
-                                           <Check className="h-3.5 w-3.5" />
-                                         </Button>
-                                       </div>
-                                     ) : (
-                                       <button
-                                         onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'endDate' })}
-                                         className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
-                                       >
-                                         {group.endDate}
-                                       </button>
-                                     )}
-                                   </td>
+                                      {editingField?.groupId === group.shiftIds.join('-') && editingField?.field === 'endDate' ? (
+                                        <div className="flex items-center gap-2">
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button variant="outline" size="sm" className="h-8 justify-start">
+                                                <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                                                {group.endDate ? format(new Date(group.endDate + 'T00:00:00'), "PP") : "Select date"}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                              <Calendar
+                                                mode="single"
+                                                selected={group.endDate ? new Date(group.endDate + 'T00:00:00') : undefined}
+                                                onSelect={async (date) => {
+                                                  if (!date) return;
+                                                  const newDate = date.toISOString().split("T")[0];
+                                                  const oldDate = group.endDate;
+                                                  
+                                                  // Update all shifts with this end date
+                                                  const shiftsToUpdate = group.days.filter(d => d.day === oldDate);
+                                                  const { error } = await supabase
+                                                    .from("shifts")
+                                                    .update({ day: newDate })
+                                                    .in("id", shiftsToUpdate.map(s => s.shiftId));
+                                                  
+                                                  if (!error) {
+                                                    toast.success("End date updated");
+                                                    fetchShifts();
+                                                    setEditingField(null);
+                                                  } else {
+                                                    toast.error("Failed to update end date");
+                                                  }
+                                                }}
+                                                initialFocus
+                                                className="pointer-events-auto"
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0"
+                                            onClick={() => setEditingField(null)}
+                                          >
+                                            <Check className="h-3.5 w-3.5" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() => setEditingField({ groupId: group.shiftIds.join('-'), field: 'endDate' })}
+                                          className="hover:bg-muted/50 px-2 py-1 rounded transition-colors"
+                                        >
+                                          {group.endDate ? format(new Date(group.endDate + 'T00:00:00'), "yyyy-MM-dd") : "-"}
+                                        </button>
+                                      )}
+                                    </td>
                                   <td className="p-2 text-right">
                                     <div className="flex items-center gap-1 justify-end">
                                        <Button
